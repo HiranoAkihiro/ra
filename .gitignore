@@ -1,0 +1,15 @@
+*
+!*/
+
+!.gitignore
+!/src/
+!/module_py/
+!/module_py/*.py
+!/src/module_py/*.py
+!/module_fort/
+!/src/module_fort/*.f90
+!/include/
+!/obj/
+!/sobj/
+!*.sh
+!Makefile

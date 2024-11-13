@@ -1,9 +1,10 @@
-module mesomesh_gen
-    type :: mapdef
-        integer(4) :: block_id
-        integer(4) :: angle
-    end type mapdef
+module mod_mesomesh_gen
+    use mod_utils
+    use mod_io
 
+contains
+
+subroutine mesh_pattern_map(map, p)
     ! ブロックは以下の整数でラベル（mapdefのblock_idメンバ）
     ! 緑：blockC >>>>> 1
     ! 黄：blockA >>>>> 2
@@ -15,15 +16,11 @@ module mesomesh_gen
     ! 例えばmapdefのangleメンバが2の時、
     ! 2 × 90 = 180
     ! となり、180度回転を表す。
-
-contains
-
-subroutine mesh_pattern_map(map, p)
     implicit none
     type(mapdef), allocatable, intent(inout) :: map(:,:)
-    integer(4), intent(in) :: p
-    integer(4) :: n, m
-    integer(4) :: i, j, in
+    integer(kint), intent(in) :: p
+    integer(kint) :: n, m
+    integer(kint) :: i, j, in
     logical :: a, b
 
     if(p==1)then
@@ -122,4 +119,43 @@ subroutine mesh_pattern_map(map, p)
         in=0
     enddo
 end subroutine mesh_pattern_map
-end module mesomesh_gen
+
+subroutine arrange_blocks(map,p)
+    implicit none
+    type(mapdef), intent(in) :: map(:,:)
+    type(meshdef) :: mesh(4)
+    type(meshdef), allocatable :: mesh_merged(:,:)
+    integer(kint), intent(in) :: p
+    integer(kint) :: i
+    character(len=100) :: dir_name 
+    character(len=:), allocatable :: fname
+    integer(kint) :: sum1, sum2
+
+    do i=1,4
+        write(dir_name,'(a,i0)')'block_',i
+        fname = merge_fname(dir_name,'node.dat')
+        call input_node(fname, mesh(i))
+        fname = merge_fname(dir_name,'elem.dat')
+        call input_elem(fname, mesh(i))
+        fname = merge_fname(dir_name,'orientation.dat')
+        call input_orientation(fname, mesh(i))
+    enddo
+
+    sum1 = 0.0d0
+    sum2 = 0.0d0
+    do i=1,4
+        sum1 = sum1 + mesh(i)%nelem
+        sum2 = sum2 + mesh(i)%nnode
+    enddo
+
+    allocate(mesh_merged(3*p,3*p))
+    ! mesh_merged%nbase_func = mesh(1)%nbase_func
+    ! mesh_merged%nelem = sum1
+    ! mesh_merged%nnode = sum2
+    ! allocate(mesh_merged%elem(mesh_merged%nbase_func,mesh_merged%nelem), source=0)
+    ! allocate(mesh_merged%node(3,mesh_merged%nnode), source=0.0d0)
+
+    
+    
+end subroutine arrange_blocks
+end module mod_mesomesh_gen

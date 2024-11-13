@@ -7,7 +7,7 @@ INCLUDE = ./include
 SLIB_DIR = ./sobj
 SLIB = libfort.so
 TARGET = $(addprefix $(SLIB_DIR)/, $(SLIB))
-SRC = mesomesh_gen.f90 mesomesh_gen_wrapper.f90
+SRC = utils.f90 io.f90 mesomesh_gen.f90 mesomesh_gen_wrapper.f90
 SOURCES = $(addprefix $(SRC_DIR)/, $(SRC))
 OBJS = $(subst $(SRC_DIR), $(OBJ_DIR), $(SOURCES:.f90=.o))
 

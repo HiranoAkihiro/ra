@@ -112,7 +112,7 @@ def ori_block_5(array):
 
 def node_block_1(array):
     with open('subcell_all_monolis/block_1/node.dat', mode='w') as f:
-        print('405', file=f)
+        print('405 3', file=f)
         for i in range(0, 405, 1):
             print(f'{array[i][1]:>23.15g},', file=f, end='')
             print(f'{array[i][2]:>23.15g},', file=f, end='')
@@ -120,7 +120,7 @@ def node_block_1(array):
 
 def node_block_2(array):
     with open('subcell_all_monolis/block_2/node.dat', mode='w') as f:
-        print('495', file=f)
+        print('495 3', file=f)
         for i in range(405, 900, 1):
             print(f'{array[i][1]:>23.15g},', file=f, end='')
             print(f'{array[i][2]:>23.15g},', file=f, end='')
@@ -128,7 +128,7 @@ def node_block_2(array):
 
 def node_block_3(array):
     with open('subcell_all_monolis/block_3/node.dat', mode='w') as f:
-        print('585', file=f)
+        print('585 3', file=f)
         for i in range(900, 1485, 1):
             print(f'{array[i][1]:>23.15g},', file=f, end='')
             print(f'{array[i][2]:>23.15g},', file=f, end='')
@@ -136,7 +136,7 @@ def node_block_3(array):
 
 def node_block_4(array):
     with open('subcell_all_monolis/block_4/node.dat', mode='w') as f:
-        print('585', file=f)
+        print('585 3', file=f)
         for i in range(900, 1485, 1):
             print(f'{1.0-array[i][1]:>23.15g},', file=f, end='')
             print(f'{array[i][2]:>23.15g},', file=f, end='')
@@ -144,7 +144,7 @@ def node_block_4(array):
 
 def node_block_5(array):
     with open('subcell_all_monolis/block_5/node.dat', mode='w') as f:
-        print('495', file=f)
+        print('495 3', file=f)
         for i in range(1485, 1980, 1):
             print(f'{array[i][1]:>23.15g},', file=f, end='')
             print(f'{array[i][2]:>23.15g},', file=f, end='')

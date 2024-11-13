@@ -1,10 +1,10 @@
 subroutine mesh_pattern_map_wrapper(p, n, block_id, angle)
-        use mesomesh_gen
-        integer(4), intent(in), value :: p
-        integer(4), intent(in), value :: n
-        integer(4), intent(out) :: block_id(n,n)
-        integer(4), intent(out) :: angle(n,n)
-
+        use mod_mesomesh_gen
+        implicit none
+        integer(kint), intent(in), value :: p
+        integer(kint), intent(in), value :: n
+        integer(kint), intent(out) :: block_id(n,n)
+        integer(kint), intent(out) :: angle(n,n)
         type(mapdef), allocatable :: map(:,:)
 
         call mesh_pattern_map(map, p)
@@ -21,3 +21,12 @@ subroutine mesh_pattern_map_wrapper(p, n, block_id, angle)
 
         deallocate(map)
 end subroutine mesh_pattern_map_wrapper
+
+subroutine test()
+    use mod_mesomesh_gen
+    implicit none
+    type(mapdef) :: map(1,1)
+
+    call arrange_blocks(map)
+    
+end subroutine test

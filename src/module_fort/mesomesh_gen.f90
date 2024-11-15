@@ -126,10 +126,12 @@ subroutine arrange_blocks(map,p)
     type(meshdef) :: mesh(4)
     type(meshdef), allocatable :: mesh_merged(:,:)
     integer(kint), intent(in) :: p
-    integer(kint) :: i
+    integer(kint) :: i, j
     character(len=100) :: dir_name 
     character(len=:), allocatable :: fname
-    integer(kint) :: sum1, sum2
+    integer(kint) :: sum1, sum2, in_nelem
+    integer(kint) :: nb(4)
+    integer(kint) :: block_id, angle
 
     do i=1,4
         write(dir_name,'(a,i0)')'block_',i
@@ -148,14 +150,30 @@ subroutine arrange_blocks(map,p)
         sum2 = sum2 + mesh(i)%nnode
     enddo
 
-    allocate(mesh_merged(3*p,3*p))
-    ! mesh_merged%nbase_func = mesh(1)%nbase_func
-    ! mesh_merged%nelem = sum1
-    ! mesh_merged%nnode = sum2
-    ! allocate(mesh_merged%elem(mesh_merged%nbase_func,mesh_merged%nelem), source=0)
-    ! allocate(mesh_merged%node(3,mesh_merged%nnode), source=0.0d0)
+    nb(2) = 2*(5*p-6)
+    nb(3) = p
+    nb(4) = p
+    nb(1) = 9*(p**2)-nb(2)-nb(3)-nb(4)
 
-    
-    
+    allocate(mesh_merged(3*p,3*p))
+
+    mesh_merged%nbase_func = mesh(1)%nbase_func
+    mesh_merged%nelem = 0
+    mesh_merged%nnode = 0
+
+    do i=1,4
+        mesh_merged%nelem = mesh_merged%nelem + nb(i)*mesh(i)%nelem
+        mesh_merged%nnode = mesh_merged%nnode + nb(i)*mesh(i)%nnode
+    enddo
+
+    in_nelem = 0
+    do i=1, 3*p
+        do j=1, 3*p
+            block_id = map(j,i)%block_id
+            angle = map(j,i)%angle
+            call arrange_nodecoord(mesh(block_id), angle, mesh_merged(j,i), i, j)
+            call arrange_connectivity(mesh(block_id), in_nelem, mesh_merged(j,i))
+        enddo
+    enddo
 end subroutine arrange_blocks
 end module mod_mesomesh_gen

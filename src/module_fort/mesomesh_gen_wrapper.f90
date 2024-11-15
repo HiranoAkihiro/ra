@@ -25,8 +25,11 @@ end subroutine mesh_pattern_map_wrapper
 subroutine test()
     use mod_mesomesh_gen
     implicit none
-    type(mapdef) :: map(1,1)
+    type(mapdef), allocatable :: map(:,:)
+    integer(kint) :: p
 
-    call arrange_blocks(map)
+    p = 2
+    call mesh_pattern_map(map, p)
+    call arrange_blocks(map,p)
     
 end subroutine test

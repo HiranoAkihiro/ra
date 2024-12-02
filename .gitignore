@@ -2,6 +2,7 @@
 !*/
 
 !.gitignore
+!.gitmodules
 !/src/
 !/module_py/
 !/src/*.py
@@ -14,3 +15,4 @@
 !*.sh
 !Makefile
 !.gitkeep
+!/submodule/monolis_utils

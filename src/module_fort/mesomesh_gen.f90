@@ -120,11 +120,11 @@ subroutine mesh_pattern_map(map, p)
     enddo
 end subroutine mesh_pattern_map
 
-subroutine arrange_blocks(map,p)
+subroutine arrange_blocks(map, p, mesh_merged)
     implicit none
     type(mapdef), intent(in) :: map(:,:)
     type(meshdef) :: mesh(4)
-    type(meshdef), allocatable :: mesh_merged(:,:)
+    type(meshdef), intent(inout), allocatable :: mesh_merged(:,:)
     integer(kint), intent(in) :: p
     integer(kint) :: i, j
     character(len=100) :: dir_name 
@@ -176,4 +176,27 @@ subroutine arrange_blocks(map,p)
         enddo
     enddo
 end subroutine arrange_blocks
+
+subroutine shear_blocks(mesh_merged)
+    implicit none
+    type(meshdef), intent(inout) :: mesh_merged(:,:)
+    real(kdouble) :: coord(3)
+    real(kdouble) :: theta, pi
+    integer(kint) :: i, j, k, n
+
+    pi = acos(-1.0)
+    theta = pi/6.0d0
+    n=size(mesh_merged, 1)
+
+    do i=1,n
+        do j=1,n
+            do k=1, size(mesh_merged(j,i)%node, 2)
+                coord(:) = mesh_merged(j,i)%node(:,k)
+                call get_shear_defo(coord, theta, 'zx', 'x')
+                call rotate_y(coord, theta/2.0d0)
+                mesh_merged(j,i)%node(:,k) = coord(:)
+            enddo
+        enddo
+    enddo
+end subroutine shear_blocks
 end module mod_mesomesh_gen

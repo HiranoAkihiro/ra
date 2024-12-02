@@ -26,10 +26,17 @@ subroutine test()
     use mod_mesomesh_gen
     implicit none
     type(mapdef), allocatable :: map(:,:)
-    integer(kint) :: p
+    type(meshdef), allocatable :: mesh_merged(:,:)
+    integer(kint) :: p, i
+    real(kdouble) :: nnodes(4)
 
+    nnodes = 0.0d0
     p = 2
     call mesh_pattern_map(map, p)
-    call arrange_blocks(map,p)
-    
+    call arrange_blocks(map, p, mesh_merged)
+    call shear_blocks(mesh_merged)
+
+    do i=1, size(mesh_merged(3,3)%node, 2)
+        write(*,*)mesh_merged(3,3)%node(:,i)
+    enddo
 end subroutine test

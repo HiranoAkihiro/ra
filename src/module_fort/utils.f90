@@ -1,7 +1,6 @@
 module mod_utils
+    use mod_monolis_utils
     implicit none
-    integer(4), parameter :: kint=4
-    integer(4), parameter :: kdouble=8
 
     type :: mapdef
         integer(4) :: block_id
@@ -60,12 +59,16 @@ subroutine rotate_y_regular(coord, angle)
     elseif(angle == 1)then
         coord(1) = coord_temp(3)
         coord(3) = -coord_temp(1)
+        coord(1) = coord(1) + 1.0d0
     elseif(angle == 2)then
         coord(1) = -coord_temp(1)
         coord(3) = -coord_temp(3)
+        coord(1) = coord(1) + 1.0d0
+        coord(3) = coord(3) + 1.0d0
     elseif(angle == 3)then
         coord(1) = -coord_temp(3)
         coord(3) = coord_temp(1)
+        coord(3) = coord(3) + 1.0d0
     endif
 end subroutine rotate_y_regular
 
@@ -101,10 +104,61 @@ subroutine arrange_nodecoord(mesh, angle, mesh_merged, imap, jmap)
     do i=1,mesh%nnode
         coord(:) = mesh%node(:,i)
         call rotate_y_regular(coord, angle)
+        !: 平行移動
         mesh_merged%node(:,i) = coord(:)
     enddo
 
     mesh_merged%node(1,:) = mesh_merged%node(1,:) + dble(imap-1)
     mesh_merged%node(3,:) = mesh_merged%node(3,:) + dble(jmap-1)
 end subroutine arrange_nodecoord
+
+subroutine get_shear_defo(coord, theta, plate, direction)
+    ! index 1 : x-y
+    ! index 2 : y-z
+    ! index 3 : z-x
+    implicit none
+    real(kdouble), intent(inout) :: coord(:)
+    real(kdouble), intent(in) :: theta
+    character(len=*), intent(in) :: plate, direction
+    real(kdouble) :: cos_theta, sin_theta
+
+    cos_theta = cos(theta)
+    sin_theta = sin(theta)
+
+    if(plate == 'xy')then
+        if(direction == 'x')then
+            coord(1) = coord(1) + coord(2)*(sin_theta/cos_theta)
+        elseif(direction == 'y')then
+            coord(2) = coord(2) + coord(1)*(sin_theta/cos_theta)
+        else
+            write(*,*)'-- ERROR --'
+            write(*,*)'You chose unexpected string.'
+            stop
+        endif 
+    elseif(plate == 'yz')then
+        if(direction == 'y')then
+            coord(2) = coord(2) + coord(3)*(sin_theta/cos_theta)
+        elseif(direction == 'z')then
+            coord(3) = coord(3) + coord(2)*(sin_theta/cos_theta)
+        else
+            write(*,*)'-- ERROR --'
+            write(*,*)'You chose unexpected string.'
+            stop
+        endif 
+    elseif(plate == 'zx')then
+        if(direction == 'z')then
+            coord(3) = coord(3) + coord(1)*(sin_theta/cos_theta)
+        elseif(direction == 'x')then
+            coord(1) = coord(1) + coord(3)*(sin_theta/cos_theta)
+        else
+            write(*,*)'-- ERROR --'
+            write(*,*)'You chose unexpected string.'
+            stop
+        endif 
+    else
+        write(*,*)'-- ERROR --'
+        write(*,*)'You chose unexpected string.'
+        stop
+    endif
+end subroutine get_shear_defo
 end module mod_utils

@@ -29,7 +29,7 @@ elif sys.argv[1] :
     end_line_n_num = 6223
 
 
-# keywordファイルから要素＆節点情報（リストのリスト）読み込み
+# keywordファイルから要素＆節点情報（リストのリスト）読み込み [OK]
 print('reading files...', end=' ', flush=True)
 elem = read.get_elem_array(file_path, start_line_e, end_line_e, start_line_e_num, end_line_e_num)
 node = read.get_node_array(file_path, start_line_n, end_line_n, start_line_n_num, end_line_n_num)
@@ -48,7 +48,7 @@ node_index.append(geom.get_node_index(node, 'z'))
 # print(node_index[1])
 # print(elem[0])
 
-node_divided = geom.divide_node_to_subcell(node, node_index)
+node_divided = geom.divide_node_to_subcell(node, node_index) # [OK?]
 n_x = len(node_index[0])
 n_z = len(node_index[1])
 # for i in range(2):
@@ -82,14 +82,16 @@ print('')
 
 print('arranging nodes and elems...', end=' ', flush=True)
 
-geom.arrange_coord_v3(node_divided, node_index)
+geom.arrange_coord_v3(node_divided, node_index) # [OK]
 # print(node_divided[0][0][0], node_divided[0][0][1], node_divided[0][0][-1])
 
-geom.sort_v3(node_divided)
+geom.sort_v3(node_divided) # [OK?]
 # print(node_divided[0][0][0], node_divided[0][0][1], node_divided[0][0][-1])
 
 # print(elem_divided[0][0][0], elem_divided[0][0][1], elem_divided[0][0][-1])
-geom.sort_v3(elem_divided)
+
+geom.sort_v3(elem_divided) # [OK?]
+
 # print(elem_divided[0][0][0], elem_divided[0][0][1], elem_divided[0][0][-1])
 
 geom.renumber(elem_divided, node_divided, node_index)

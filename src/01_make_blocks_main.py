@@ -1,7 +1,8 @@
 from module_py import read_subcell_all_v2 as read
-from module_py import write_subcell_all_v2 as write
-from module_py import arrange_subcell_all_v2 as arrange
+# from module_py import write_subcell_all_v2 as write
+# from module_py import arrange_subcell_all_v2 as arrange
 from module_py import geom
+from module_py import write
 import os
 import numpy as np
 import sys
@@ -29,54 +30,74 @@ elif sys.argv[1] :
 
 
 # keywordファイルから要素＆節点情報（リストのリスト）読み込み
+print('reading files...', end=' ', flush=True)
 elem = read.get_elem_array(file_path, start_line_e, end_line_e, start_line_e_num, end_line_e_num)
 node = read.get_node_array(file_path, start_line_n, end_line_n, start_line_n_num, end_line_n_num)
 
-print('*** read files ***')
+print('done.')
 print('')
 
 # 幾何判定（各座標軸について、どのような節点分布があるかを把握）
 # z方向、x方向が縦と横に対応、y方向が高さに対応しているので、z,x方向について分割情報を取得
 # 節点のみブロックごとに分割したリストを取得（node_divided）
+print('dividing nodes...', end=' ', flush=True)
 node_index = []
 node_index.append(geom.get_node_index(node, 'x'))
 node_index.append(geom.get_node_index(node, 'z'))
 # print(node_index[0])
 # print(node_index[1])
+# print(elem[0])
 
 node_divided = geom.divide_node_to_subcell(node, node_index)
+n_x = len(node_index[0])
+n_z = len(node_index[1])
 # for i in range(2):
 #     for j in range(3):
 #         print(len(node_divided[i][j]))
 
 # print(len(node))
-
-print('*** divided nodes ***')
+print('done.')
 print('')
+# print(node_divided[0][0][0])
+# print(len(node_divided[0]), len(node_divided[1]))
+
 
 # node_divided（ブロックごとに仕分けた節点情報）をもとに、全体の要素コネクティビティもブロックごとに分割する
-elem_divided = geom.divide_elem_to_subcell(node_divided, elem)
+print('dividing elems...', end=' ', flush=True)
 
+elem_divided_temp = geom.divide_elem_to_subcell_temp(node_divided, elem)
 
+elem_divided = geom.divide_elem_to_subcell(elem_divided_temp, n_x, n_z)
 
+print('done.')
+print('')
 
+# for i in range(len(node_index[0])):
+#     for j in range(len(node_index[1])):
+#         print(len(elem_divided[i][j]))
 
-
+# print(len(elem), len(node))
 
 # node = arrange.normalize_node(node) # 節点座標正規化
 
+print('arranging nodes and elems...', end=' ', flush=True)
 
+geom.arrange_coord_v3(node_divided, node_index)
+# print(node_divided[0][0][0], node_divided[0][0][1], node_divided[0][0][-1])
 
-# メッシュデータをブロックごとに分割
+geom.sort_v3(node_divided)
+# print(node_divided[0][0][0], node_divided[0][0][1], node_divided[0][0][-1])
 
-# dir = 'subcell_all_monolis_v3'
-# for i in range(1,6,1):
-#     path = os.path.join(dir, f"block_{i}")
-#     os.makedirs(path, exist_ok=True)
-# write.elem(elem)
-# write.orientation(elem)
-# write.node(node)
+# print(elem_divided[0][0][0], elem_divided[0][0][1], elem_divided[0][0][-1])
+geom.sort_v3(elem_divided)
+# print(elem_divided[0][0][0], elem_divided[0][0][1], elem_divided[0][0][-1])
 
-# # print(elem[0]) # eid     pid      n1      n2      n3      n4      n5      n6      n7      n8
-# print(node[0])
-# print(node[1979])
+geom.renumber(elem_divided, node_divided, node_index)
+print('done.')
+print('')
+
+print('writing out mesh...', end=' ', flush=True)
+write.elem(elem_divided, node_index)
+write.node(node_divided, node_index)
+print('done.')
+print('')

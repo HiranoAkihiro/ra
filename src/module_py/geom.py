@@ -49,3 +49,71 @@ def divide_node_to_subcell(node, node_index):
 
     return list
 
+def divide_elem_to_subcell_temp(node_divided, elem):
+    list = [[[] for _ in range(len(node_divided[0]))] for _ in range(len(node_divided))]
+    for i in range(len(node_divided)):
+        for j in range(len(node_divided[1])):
+            for k in range(len(node_divided[i][j])):
+                for l in range(len(elem)):
+                    for m in range(2, 10, 1):
+                        elem_temp = elem[l][m]
+                        if elem_temp == int(node_divided[i][j][k][0]):
+                            list[i][j].append(elem[l])
+    
+    return list
+
+def divide_elem_to_subcell(elem_divided_temp, n_x, n_z):
+    temp_list = [[[] for _ in range(n_z)] for _ in range(n_x)]
+    
+    # eidのみを抽出（重複あり）
+    for i in range(n_x):
+        for j in range(n_z):
+            for k in range(len(elem_divided_temp[i][j])):
+                temp_list[i][j].append(elem_divided_temp[i][j][k][0])
+
+    temp_list_set = [[[] for _ in range(n_z)] for _ in range(n_x)]
+
+    # eidの重複解消
+    for i in range(n_x):
+        for j in range(n_z):
+            temp_list_set[i][j] = list(dict.fromkeys(temp_list[i][j]))
+            # print(len(temp_list[i][j]))
+
+    # for i in range(n_x):
+    #     for j in range(n_z):
+    #         print(len(temp_list_set[i][j]))
+
+    elem_divided = [[[] for _ in range(n_z)] for _ in range(n_x)]
+    for i in range(n_x):
+        for j in range(n_z):
+            inc = 0
+            for k in range(len(elem_divided_temp[i][j])):
+                if inc != len(temp_list_set[i][j]) and elem_divided_temp[i][j][k][0] == temp_list_set[i][j][inc]:
+                    elem_divided[i][j].append(elem_divided_temp[i][j][k])
+                    inc = inc + 1
+
+    return elem_divided
+
+def arrange_coord_v3(node_divided, node_index):
+    for i in range(len(node_divided)):
+        for j in range(len(node_divided[0])):
+            val_x = node_index[0][i]
+            val_z = node_index[1][j]
+            for k in range(len(node_divided[i][j])):
+                node_divided[i][j][k][1] = node_divided[i][j][k][1] - val_x
+                node_divided[i][j][k][3] = node_divided[i][j][k][3] - val_z
+
+def sort_v3(node_divided):
+    for i in range(len(node_divided)):
+        for j in range(len(node_divided[0])):
+            node_divided[i][j].sort(key=lambda x: x[0])
+
+def renumber(elem_devided, node_divided, node_index):
+    for i in range(len(node_index[0])):
+        for j in range(len(node_index[1])):
+            for k in range(len(node_divided[i][j])):
+                n_id = int(node_divided[i][j][k][0])
+                for l in range(len(elem_devided[i][j])):
+                    for m in range(2,10,1):
+                        if elem_devided[i][j][l][m] == n_id:
+                            elem_devided[i][j][l][m] = k+1

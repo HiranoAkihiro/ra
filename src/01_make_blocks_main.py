@@ -17,7 +17,9 @@ if sys.argv[1] == 'v2':
     end_line_n = 3410
     start_line_n_num = 1430
     end_line_n_num = 3409
-elif sys.argv[1] :
+    print('NO PROGRAM')
+    exit()
+elif sys.argv[1] == 'v3':
     file_path = './keyword/subcell_all_v3.k'
     start_line_e = 137
     end_line_e = 2235

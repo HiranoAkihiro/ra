@@ -35,7 +35,6 @@ elif sys.argv[1] == 'v3':
 print('reading files...', end=' ', flush=True)
 elem = read.get_elem_array(file_path, start_line_e, end_line_e, start_line_e_num, end_line_e_num)
 node = read.get_node_array(file_path, start_line_n, end_line_n, start_line_n_num, end_line_n_num)
-
 print('done.')
 print('')
 
@@ -46,56 +45,24 @@ print('dividing nodes...', end=' ', flush=True)
 node_index = []
 node_index.append(geom.get_node_index(node, 'x'))
 node_index.append(geom.get_node_index(node, 'z'))
-# print(node_index[0])
-# print(node_index[1])
-# print(elem[0])
-
 node_divided = geom.divide_node_to_subcell(node, node_index) # [OK?]
 n_x = len(node_index[0])
 n_z = len(node_index[1])
-# for i in range(2):
-#     for j in range(3):
-#         print(len(node_divided[i][j]))
-
-# print(len(node))
 print('done.')
 print('')
-# print(node_divided[0][0][0])
-# print(len(node_divided[0]), len(node_divided[1]))
 
 
 # node_divided（ブロックごとに仕分けた節点情報）をもとに、全体の要素コネクティビティもブロックごとに分割する
 print('dividing elems...', end=' ', flush=True)
-
 elem_divided_temp = geom.divide_elem_to_subcell_temp(node_divided, elem)
-
 elem_divided = geom.divide_elem_to_subcell(elem_divided_temp, n_x, n_z)
-
 print('done.')
 print('')
 
-# for i in range(len(node_index[0])):
-#     for j in range(len(node_index[1])):
-#         print(len(elem_divided[i][j]))
-
-# print(len(elem), len(node))
-
-# node = arrange.normalize_node(node) # 節点座標正規化
-
 print('arranging nodes and elems...', end=' ', flush=True)
-
-geom.arrange_coord_v3(node_divided, node_index) # [OK]
-# print(node_divided[0][0][0], node_divided[0][0][1], node_divided[0][0][-1])
-
-geom.sort_v3(node_divided) # [OK?]
-# print(node_divided[0][0][0], node_divided[0][0][1], node_divided[0][0][-1])
-
-# print(elem_divided[0][0][0], elem_divided[0][0][1], elem_divided[0][0][-1])
-
-geom.sort_v3(elem_divided) # [OK?]
-
-# print(elem_divided[0][0][0], elem_divided[0][0][1], elem_divided[0][0][-1])
-
+geom.arrange_coord_v3(node_divided, node_index)
+geom.sort_v3(node_divided)
+geom.sort_v3(elem_divided)
 geom.renumber(elem_divided, node_divided, node_index)
 print('done.')
 print('')

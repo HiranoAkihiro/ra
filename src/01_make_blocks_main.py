@@ -30,6 +30,9 @@ elif sys.argv[1] == 'v3':
     end_line_n = 6224
     start_line_n_num = 2237
     end_line_n_num = 6223
+else:
+    print('NO PROGRAM')
+    exit()
 
 
 # keywordファイルから要素＆節点情報（リストのリスト）読み込み [OK]

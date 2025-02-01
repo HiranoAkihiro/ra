@@ -49,4 +49,32 @@ subroutine input_orientation(fname, mesh)
         enddo
     close(20)
 end subroutine input_orientation
+
+subroutine output_node(mesh, fname)
+    implicit none
+    type(meshdef) :: mesh
+    character(len=*), intent(in) :: fname
+    integer(kint) :: i, j
+
+    open(20, file=fname, status='replace')
+        write(20, '(i0,a,i0)')mesh%nnode, ' ', 3
+        do i=1,mesh%nnode
+            write(20, '(3(F23.15,:,","))') (mesh%node(j,i), j=1,3)
+        enddo
+    close(20)
+end subroutine output_node
+
+subroutine output_elem(mesh, fname)
+    implicit none
+    type(meshdef) :: mesh
+    character(len=*), intent(in) :: fname
+    integer(kint) :: i, j
+
+    open(20, file=fname, status='replace')
+        write(20, '(i0,a,i0)')mesh%nelem, ' ', mesh%nbase_func
+        do i=1,mesh%nelem
+            write(20, '(8(I0,:,","))') (mesh%elem(j,i), j=1,8)
+        enddo
+    close(20)
+end subroutine output_elem
 end module mod_io

@@ -17,13 +17,14 @@ module mod_utils
     end type
     
 contains
-function merge_fname(dir_name, file_name)
+function merge_fname(version, dir_name, file_name)
     implicit none
+    character(len=*), intent(in) :: version
     character(len=*), intent(in) :: dir_name
     character(len=*), intent(in) :: file_name
     character(len=:), allocatable :: merge_fname
 
-    merge_fname = 'subcell_all_monolis/'//trim(dir_name)//'/'//trim(file_name)
+    merge_fname = 'subcell_all_monolis_'//trim(version)//'/'//trim(dir_name)//'/'//trim(file_name)
 end function merge_fname
 
 subroutine rotate_y(coord, theta)
@@ -71,6 +72,25 @@ subroutine rotate_y_regular(coord, angle)
         coord(3) = coord(3) + 1.0d0
     endif
 end subroutine rotate_y_regular
+
+subroutine reflect_y(coord, theta)
+    implicit none
+    real(kdouble), intent(inout) :: coord(3)
+    real(kdouble), intent(in) :: theta
+    real(kdouble) :: Rmat(3,3)
+    real(kdouble) :: cos_2th, sin_2th
+
+    cos_2th = cos(2.0d0*theta)
+    sin_2th = sin(2.0d0*theta)
+    Rmat = 0.0d0
+    Rmat(1,1) = cos_2th
+    Rmat(1,3) = sin_2th
+    Rmat(2,2) = 1.0d0
+    Rmat(3,1) = sin_2th
+    Rmat(3,3) = -cos_2th
+
+    coord = matmul(Rmat, coord)
+end subroutine reflect_y
 
 subroutine arrange_connectivity(mesh, in_nelem, mesh_merged)
     implicit none

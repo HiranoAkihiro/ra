@@ -40,3 +40,11 @@ subroutine test()
         write(*,*)mesh_merged(3,3)%node(:,i)
     enddo
 end subroutine test
+
+subroutine rotate_wrapper()
+    use mod_utils
+    use mod_v3_init_placement
+    implicit none
+
+    call rotate()
+end subroutine rotate_wrapper

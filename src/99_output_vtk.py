@@ -20,3 +20,6 @@ mesh5.output_vtk('block_5.vtk')
 
 mesh6 = io.Meshdef.input_mesh('subcell_all_monolis_v3/block_6')
 mesh6.output_vtk('block_6.vtk')
+
+mesh7 = io.Meshdef.input_mesh('subcell_all_monolis_v3/block_7')
+mesh7.output_vtk('block_7.vtk')

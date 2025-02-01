@@ -128,18 +128,19 @@ subroutine arrange_blocks(map, p, mesh_merged)
     integer(kint), intent(in) :: p
     integer(kint) :: i, j
     character(len=100) :: dir_name 
-    character(len=:), allocatable :: fname
+    character(len=:), allocatable :: fname, version
     integer(kint) :: sum1, sum2, in_nelem
     integer(kint) :: nb(4)
     integer(kint) :: block_id, angle
 
+    version = 'v2'
     do i=1,4
         write(dir_name,'(a,i0)')'block_',i
-        fname = merge_fname(dir_name,'node.dat')
+        fname = merge_fname(version, dir_name,'node.dat')
         call input_node(fname, mesh(i))
-        fname = merge_fname(dir_name,'elem.dat')
+        fname = merge_fname(version, dir_name,'elem.dat')
         call input_elem(fname, mesh(i))
-        fname = merge_fname(dir_name,'orientation.dat')
+        fname = merge_fname(version, dir_name,'orientation.dat')
         call input_orientation(fname, mesh(i))
     enddo
 

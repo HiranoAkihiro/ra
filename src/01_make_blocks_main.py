@@ -6,6 +6,7 @@ from module_py import write
 import os
 import numpy as np
 import sys
+import ctypes
 
 if sys.argv[1] == 'v2':
     file_path = './keyword/subcell_all_v2.k'
@@ -70,5 +71,7 @@ print('')
 print('writing out mesh...', end=' ', flush=True)
 write.elem(elem_divided, node_index)
 write.node(node_divided, node_index)
+f = np.ctypeslib.load_library("libfort.so", "./sobj/")
+f.rotate_wrapper_()
 print('done.')
 print('')

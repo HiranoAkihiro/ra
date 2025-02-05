@@ -57,9 +57,12 @@ contains
         theta = -pi/2.0d0
         do i=1, mesh(2)%nnode
             coord(:) = mesh(2)%node(:,i)
-            call reflect_y(coord, 0.0d0)
-            call rotate_y(coord, theta)
+            call reflect_y(coord, theta)
+            ! call reflect_y(coord, 0.0d0)
+            ! call rotate_y(coord, theta)
             mesh(7)%node(:,i) = coord(:)
+            mesh(7)%node(1,i) = mesh(7)%node(1,i) + 1.0d0
+            ! mesh(7)%node(3,i) = mesh(7)%node(3,i) + 1.0d0
         enddo
 
         ! block_1~6

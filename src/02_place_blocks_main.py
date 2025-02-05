@@ -17,7 +17,7 @@ def call_fortran(p, block_id, angle):
     f.mesh_pattern_map_wrapper_(ctypes.c_int32(p), ctypes.c_int32(n), block_id, angle)
     return n
 
-p = 3
+p = 4
 block_id = np.zeros([p*3,p*3], dtype=np.int32)
 angle = np.zeros([p*3,p*3], dtype=np.int32)
 
@@ -31,6 +31,11 @@ print(angle.shape)
 #'#FFFF00'黄
 #'#FF0000'赤
 #'#FFC0CB'桃
+#'#0000FF'青
+#'#A52A2A'茶
+#'#008000'深緑
+#'#ADD8E6'水
+#'#668811'黄緑
 
 # 色データ生成
 colors = np.full([n,n], '#00FF00')
@@ -44,6 +49,18 @@ for i in range(0,n,1):
             colors[i,j] = '#FF0000'
         elif block_id[i,j] == 4:
             colors[i,j] = '#FFC0CB'
+        elif block_id[i,j] == 5:
+            colors[i,j] = '#A52A2A'
+        elif block_id[i,j] == 6:
+            colors[i,j] = '#668811'
+        elif block_id[i,j] == 7:
+            colors[i,j] = '#008000'
+        elif block_id[i,j] == 8:
+            colors[i,j] = '#0000FF'
+        elif block_id[i,j] == 9:
+            colors[i,j] = '#ADD806'
+        elif block_id[i,j] == 10:
+            colors[i,j] = '#FFFFFF'
 
 colors_rgb = np.array([[mcolors.to_rgb(color) for color in row] for row in colors])
 

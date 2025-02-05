@@ -20,8 +20,10 @@ subroutine mesh_pattern_map(map, p)
     type(mapdef), allocatable, intent(inout) :: map(:,:)
     integer(kint), intent(in) :: p
     integer(kint) :: n, m
-    integer(kint) :: i, j, in
-    logical :: a, b
+    integer(kint) :: i, j, k, in
+    logical :: a, b, is_v3
+
+    is_v3 = .true.
 
     if(p==1)then
         allocate(map(p,p))
@@ -118,6 +120,52 @@ subroutine mesh_pattern_map(map, p)
         enddo
         in=0
     enddo
+
+    in = 1
+    if(is_v3)then
+        do i=1, n
+            do j=1, n
+                if(j==1 .and. i==1)cycle
+                if(map(j,i)%block_id==3)then
+                    if(in == 1)then
+                        map(j+1,i)%block_id = 6
+                        map(j+2,i)%block_id = 6
+                    elseif(in == p)then
+                        map(j,i+1)%block_id = 7
+                        map(j,i+2)%block_id = 7
+                    else
+                        map(1,i)%block_id = 5
+                        map(j,1)%block_id = 5
+                        do k=2, j-1
+                            map(k,i)%block_id = 7
+                        enddo
+                        do k=2, i-1
+                            if(map(j,k)%block_id == 7)then
+                                map(j,k)%block_id = 10
+                            else
+                                map(j,k)%block_id = 6
+                            endif
+                        enddo
+                    endif
+                    in = in + 1
+                endif
+                if(map(j,i)%block_id==4)then
+                    do k=i+1, n
+                        map(j,k)%block_id = 9
+                        ! map(k,i)%block_id = 8
+                    enddo
+                    do k=j+1, n
+                        if(map(k,i)%block_id == 9)then
+                            map(k,i)%block_id = 10
+                        else
+                            map(k,i)%block_id = 8
+                            ! map(j,k)%block_id = 9
+                        endif
+                    enddo
+                endif
+            enddo
+        enddo
+    endif
 end subroutine mesh_pattern_map
 
 subroutine arrange_blocks(map, p, mesh_merged)

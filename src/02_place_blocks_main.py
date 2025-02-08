@@ -17,7 +17,7 @@ def call_fortran(p, block_id, angle):
     f.mesh_pattern_map_wrapper_(ctypes.c_int32(p), ctypes.c_int32(n), block_id, angle)
     return n
 
-p = 4
+p = 5
 block_id = np.zeros([p*3,p*3], dtype=np.int32)
 angle = np.zeros([p*3,p*3], dtype=np.int32)
 

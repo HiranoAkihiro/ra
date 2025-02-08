@@ -4,6 +4,7 @@ import numpy as np
 import sys
 
 mesh1 = io.Meshdef.input_mesh('subcell_all_monolis_v3/block_1')
+print(mesh1.mat[0])
 mesh1.output_vtk('block_1.vtk')
 
 mesh2 = io.Meshdef.input_mesh('subcell_all_monolis_v3/block_2')

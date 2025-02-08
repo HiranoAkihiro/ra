@@ -2,11 +2,12 @@ import numpy as np
 
 
 class Meshdef:
-    def __init__(self, nnode, nelem, node, elem):
+    def __init__(self, nnode, nelem, node, elem, mat):
         self.nnode = int(nnode)
         self.nelem = int(nelem)
         self.node = np.array(node, dtype=np.float64)
         self.elem = np.array(elem, dtype=np.int32)
+        self.mat = np.array(mat, dtype=np.int32)
 
     def __repr__(self):
         return f"Meshdef(nnode={self.nnode}, nelem={self.nelem}, node.shape={self.node.shape}, elem.shape={self.elem.shape})"
@@ -27,7 +28,14 @@ class Meshdef:
                 values = line.strip().split(',')
                 node[i] = np.array(values)
             
-        return cls(nnode, nelem, node, elem)
+        with open(dir+'/mat.dat', 'r') as f:
+            nmat, col = map(int, f.readline().split())
+            mat = np.zeros((nmat), dtype=int)
+            for i, line in enumerate(f):
+                value = int(line.strip())
+                mat[i] = value
+            
+        return cls(nnode, nelem, node, elem, mat)
 
     def output_vtk(self, fname):
         output_file = 'visual/' + fname
@@ -50,5 +58,11 @@ class Meshdef:
             f.write(f"CELL_TYPES {self.nelem}\n")
             for _ in range(self.nelem):
                 f.write("12\n")  # 12は8ノード六面体要素を表す
+            
+            f.write(f"CELL_DATA {self.nelem}\n")
+            f.write("SCALARS mat_id float\n")
+            f.write("LOOKUP_TABLE default\n")
+            for i in range(self.nelem):
+                f.write(f"{self.mat[i]}\n")
 
         print(f"VTK file has been written to {output_file}")

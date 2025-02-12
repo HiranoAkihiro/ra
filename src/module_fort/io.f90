@@ -41,7 +41,8 @@ subroutine input_orientation(fname, mesh)
     character(len=100) :: string
 
     open(20, file=fname, status='old')
-        read(20,*)string
+        read(20,'(a)')string
+        if(trim(string) /= '#PID')rewind(20)
         read(20,*)n
         allocate(mesh%pid(n))
         do i=1,mesh%nelem

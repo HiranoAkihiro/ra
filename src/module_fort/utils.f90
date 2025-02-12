@@ -57,7 +57,7 @@ subroutine rotate_y_regular(coord, angle)
     coord_temp = coord
     if(angle == 0)then
 
-    elseif(angle == 1)then
+    elseif(angle == 3)then
         coord(1) = coord_temp(3)
         coord(3) = -coord_temp(1)
         coord(1) = coord(1) + 1.0d0
@@ -66,7 +66,7 @@ subroutine rotate_y_regular(coord, angle)
         coord(3) = -coord_temp(3)
         coord(1) = coord(1) + 1.0d0
         coord(3) = coord(3) + 1.0d0
-    elseif(angle == 3)then
+    elseif(angle == 1)then
         coord(1) = -coord_temp(3)
         coord(3) = coord_temp(1)
         coord(3) = coord(3) + 1.0d0

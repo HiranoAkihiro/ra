@@ -17,7 +17,7 @@ def call_fortran(p, block_id, angle):
     f.mesh_pattern_map_wrapper_(ctypes.c_int32(p), ctypes.c_int32(n), block_id, angle)
     return n
 
-p = 5
+p = 4
 block_id = np.zeros([p*3,p*3], dtype=np.int32)
 angle = np.zeros([p*3,p*3], dtype=np.int32)
 
@@ -43,24 +43,35 @@ for i in range(0,n,1):
     for j in range(0,n,1):
         if block_id[i,j] == 1:
             colors[i,j] = '#00FF00'
+            # colors[i,j] = '#FFFF00'
         elif block_id[i,j] == 2:
             colors[i,j] = '#FFFF00'
+            # colors[i,j] = '#FFC0CB'
         elif block_id[i,j] == 3:
             colors[i,j] = '#FF0000'
+            # colors[i,j] = '#ADD806'
         elif block_id[i,j] == 4:
             colors[i,j] = '#FFC0CB'
+            # colors[i,j] = '#A52A2A'
         elif block_id[i,j] == 5:
             colors[i,j] = '#A52A2A'
+            # colors[i,j] = '#0000FF'
         elif block_id[i,j] == 6:
             colors[i,j] = '#668811'
+            # colors[i,j] = '#00FF00'
         elif block_id[i,j] == 7:
             colors[i,j] = '#008000'
+            # colors[i,j] = '#FF0000'
         elif block_id[i,j] == 8:
             colors[i,j] = '#0000FF'
+            # colors[i,j] = '#008000'
         elif block_id[i,j] == 9:
             colors[i,j] = '#ADD806'
+            # colors[i,j] = '#668811'
         elif block_id[i,j] == 10:
             colors[i,j] = '#FFFFFF'
+        elif block_id[i,j] == 11:
+            colors[i,j] = '#000000'
 
 colors_rgb = np.array([[mcolors.to_rgb(color) for color in row] for row in colors])
 

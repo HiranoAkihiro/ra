@@ -159,7 +159,7 @@ subroutine mesh_pattern_map(map, p)
                         do k=2, i-1
                             if(map(j,k)%block_id == rrr)then
                                 map(j,k)%block_id = yyy
-                                map(j,k)%angle = 0
+                                map(j,k)%angle = 1
                             else
                                 map(j,k)%block_id = ttt
                                 map(j,k)%angle = 1
@@ -177,7 +177,7 @@ subroutine mesh_pattern_map(map, p)
                     do k=j+1, n
                         if(map(k,i)%block_id == rrr)then
                             map(k,i)%block_id = zzz
-                            map(k,i)%angle = 0
+                            map(k,i)%angle = 2
                         else
                             map(k,i)%block_id = ttt
                             map(k,i)%angle = 2

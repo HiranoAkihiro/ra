@@ -156,6 +156,14 @@ contains
         mesh(9)%elem = mesh(8)%elem
         mesh(9)%node = mesh(8)%node
 
+        theta = -pi/2.0d0
+        do i=1, mesh(9)%nnode
+            coord(:) = mesh(9)%node(:,i)
+            call reflect_y(coord, theta)
+            mesh(9)%node(:,i) = coord(:)
+            mesh(9)%node(1,i) = mesh(9)%node(1,i) + 1.0d0
+        enddo
+
         ! in = 0
         ! do i=1, mesh(5)%nelem
         !     if(mesh(5)%pid(i) == 4 .or. mesh(5)%pid(i) == 6)then

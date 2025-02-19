@@ -34,7 +34,7 @@ subroutine test()
     p = 2
     call mesh_pattern_map(map, p)
     call arrange_blocks(map, p, mesh_merged)
-    call shear_blocks(mesh_merged)
+    ! call shear_blocks(mesh_merged)
 
     do i=1, size(mesh_merged(3,3)%node, 2)
         write(*,*)mesh_merged(3,3)%node(:,i)

@@ -193,7 +193,7 @@ end subroutine mesh_pattern_map
 subroutine arrange_blocks(map, p, mesh_merged)
     implicit none
     type(mapdef), intent(in) :: map(:,:)
-    type(meshdef) :: mesh(4)
+    type(meshdef), allocatable :: mesh(:)
     type(meshdef), intent(inout), allocatable :: mesh_merged(:,:)
     integer(kint), intent(in) :: p
     integer(kint) :: i, j, a, b
@@ -205,9 +205,11 @@ subroutine arrange_blocks(map, p, mesh_merged)
     logical :: is_v3
 
     is_v3 = .true.
+    version = 'v3'
 
     if(is_v3)then
-        do i=1, 10
+        allocate(mesh(9))
+        do i=1, 9
             write(dir_name,'(a,i0)')'block_',i
             fname = merge_fname(version, dir_name,'node.dat')
             call input_node(fname, mesh(i))
@@ -215,31 +217,31 @@ subroutine arrange_blocks(map, p, mesh_merged)
             call input_elem(fname, mesh(i))
             fname = merge_fname(version, dir_name,'mat.dat')
             call input_orientation(fname, mesh(i))
-            allocate(nb(11))
-
-            nb(1) = 8*(p-1)
-            nb(2) = p
-            nb(3) = p*(p-1)
-            nb(4) = 2*(p-2)
-            nb(5) = p*(p-1)
-            nb(6) = 4*(p**2)
-            nb(7) = p
-            nb(8) = (p**2) - 3*p + 4
-            nb(9) = (p**2) - 3*p + 4
-            if(p==2)then
-                nb(10) = 0
-                nb(11) = 0
-            elseif(p==3)then
-                nb(10) = 0
-                nb(11) = 1
-            else
-                a = p - 3
-                b = p - 2
-                nb(10) = a*(a+1)/2
-                nb(11) = b*(b+1)/2
-            endif
         enddo
+
+        allocate(nb(9))
+
+        nb(1) = 8*(p-1)
+        nb(2) = p
+        nb(3) = p*(p-1) + (p**2) - 3*p + 4
+        nb(4) = 2*(p-2)
+        nb(5) = p*(p-1) + (p**2) - 3*p + 4
+        nb(6) = 4*(p**2)
+        nb(7) = p
+        if(p==2)then
+            nb(9) = 0
+            nb(8) = 0
+        elseif(p==3)then
+            nb(9) = 0
+            nb(8) = 1
+        else
+            a = p - 3
+            b = p - 2
+            nb(9) = a*(a+1)/2
+            nb(8) = b*(b+1)/2
+        endif
     else
+        allocate(mesh(4))
         do i=1,4
             write(dir_name,'(a,i0)')'block_',i
             fname = merge_fname(version, dir_name,'node.dat')
@@ -248,13 +250,14 @@ subroutine arrange_blocks(map, p, mesh_merged)
             call input_elem(fname, mesh(i))
             fname = merge_fname(version, dir_name,'orientation.dat')
             call input_orientation(fname, mesh(i))
-            allocate(nb(4))
-
-            nb(2) = 2*(5*p-6)
-            nb(3) = p
-            nb(4) = p
-            nb(1) = 9*(p**2)-nb(2)-nb(3)-nb(4)
         enddo
+
+        allocate(nb(4))
+
+        nb(2) = 2*(5*p-6)
+        nb(3) = p
+        nb(4) = p
+        nb(1) = 9*(p**2)-nb(2)-nb(3)-nb(4)
     endif
 
     ! sum1 = 0.0d0
@@ -271,7 +274,7 @@ subroutine arrange_blocks(map, p, mesh_merged)
     mesh_merged%nnode = 0
 
     if(is_v3)then
-        do i=1,11
+        do i=1,9
             mesh_merged%nelem = mesh_merged%nelem + nb(i)*mesh(i)%nelem
             mesh_merged%nnode = mesh_merged%nnode + nb(i)*mesh(i)%nnode
         enddo

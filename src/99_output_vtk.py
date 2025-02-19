@@ -4,7 +4,6 @@ import numpy as np
 import sys
 
 mesh1 = io.Meshdef.input_mesh('subcell_all_monolis_v3/block_1')
-print(mesh1.mat[0])
 mesh1.output_vtk('block_1.vtk')
 
 mesh2 = io.Meshdef.input_mesh('subcell_all_monolis_v3/block_2')
@@ -24,3 +23,9 @@ mesh6.output_vtk('block_6.vtk')
 
 mesh7 = io.Meshdef.input_mesh('subcell_all_monolis_v3/block_7')
 mesh7.output_vtk('block_7.vtk')
+
+mesh8 = io.Meshdef.input_mesh('subcell_all_monolis_v3/block_8')
+mesh8.output_vtk('block_8.vtk')
+
+mesh9 = io.Meshdef.input_mesh('subcell_all_monolis_v3/block_9')
+mesh9.output_vtk('block_9.vtk')

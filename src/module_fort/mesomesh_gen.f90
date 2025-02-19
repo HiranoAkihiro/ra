@@ -16,25 +16,24 @@ subroutine mesh_pattern_map(map, p)
     ! 例えばmapdefのangleメンバが2の時、
     ! 2 × 90 = 180
     ! となり、180度回転を表す。
+    ! マップ情報については、python出力map情報における列が一次元、行が二次元
     implicit none
     type(mapdef), allocatable, intent(inout) :: map(:,:)
     integer(kint), intent(in) :: p
     integer(kint) :: n, m
     integer(kint) :: i, j, k, in
-    integer(kint) :: ppp, qqq, rrr, sss, ttt, uuu, vvv, www, xxx, yyy, zzz
+    integer(kint) :: ppp, qqq, rrr, sss, ttt, uuu, vvv, yyy, zzz
     logical :: a, b, is_v3
 
-    ppp = 2
-    qqq = 4
-    rrr = 9
-    sss = 5
-    ttt = 8
-    uuu = 1
-    vvv = 3
-    www = 7
-    xxx = 6
-    yyy = 10
-    zzz = 11
+    ppp = 1
+    qqq = 2
+    rrr = 3
+    sss = 4
+    ttt = 5
+    uuu = 6
+    vvv = 7
+    yyy = 8
+    zzz = 9
 
     is_v3 = .true.
 
@@ -50,7 +49,7 @@ subroutine mesh_pattern_map(map, p)
     allocate(map(n,n))
 
     !(4)
-    map = mapdef(1,1)
+    map = mapdef(uuu,1)
 
     !(5)
     map(1,1)%block_id = qqq
@@ -141,22 +140,29 @@ subroutine mesh_pattern_map(map, p)
                 if(j==1 .and. i==1)cycle
                 if(map(j,i)%block_id==vvv)then
                     if(in == 1)then
-                        map(j+1,i)%block_id = xxx
-                        map(j+2,i)%block_id = xxx
+                        map(j+1,i)%block_id = ttt
+                        map(j+2,i)%block_id = ttt
+                        map(j+1,i)%angle = 0
+                        map(j+2,i)%angle = 0
                     elseif(in == p)then
-                        map(j,i+1)%block_id = www
-                        map(j,i+2)%block_id = www
+                        map(j,i+1)%block_id = rrr
+                        map(j,i+2)%block_id = rrr
+                        map(j,i+1)%angle = 0
+                        map(j,i+2)%angle = 0
                     else
                         map(1,i)%block_id = sss
                         map(j,1)%block_id = sss
                         do k=2, j-1
-                            map(k,i)%block_id = www
+                            map(k,i)%block_id = rrr
+                            map(k,i)%angle = 3
                         enddo
                         do k=2, i-1
-                            if(map(j,k)%block_id == www)then
+                            if(map(j,k)%block_id == rrr)then
                                 map(j,k)%block_id = yyy
+                                map(j,k)%angle = 0
                             else
-                                map(j,k)%block_id = xxx
+                                map(j,k)%block_id = ttt
+                                map(j,k)%angle = 1
                             endif
                         enddo
                     endif
@@ -165,13 +171,16 @@ subroutine mesh_pattern_map(map, p)
                 if(map(j,i)%block_id==qqq)then
                     do k=i+1, n
                         map(j,k)%block_id = rrr
+                        map(j,k)%angle = 2
                         ! map(k,i)%block_id = 8
                     enddo
                     do k=j+1, n
-                        if(map(k,i)%block_id == 9)then
+                        if(map(k,i)%block_id == rrr)then
                             map(k,i)%block_id = zzz
+                            map(k,i)%angle = 0
                         else
                             map(k,i)%block_id = ttt
+                            map(k,i)%angle = 2
                             ! map(j,k)%block_id = 9
                         endif
                     enddo

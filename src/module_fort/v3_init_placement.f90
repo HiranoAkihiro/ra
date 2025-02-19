@@ -16,7 +16,7 @@ contains
             n_block = 4
         elseif(version == 'v3')then
             n_block = 6
-            n_mesh = 7
+            n_mesh = 9
         endif
         allocate(mesh(n_mesh))
 
@@ -26,6 +26,8 @@ contains
             call input_node(fname, mesh(i))
             fname = merge_fname(version, dir_name, 'elem.dat')
             call input_elem(fname, mesh(i))
+            fname = merge_fname(version, dir_name, 'mat.dat')
+            call input_orientation(fname, mesh(i))
         enddo
         write(dir_name,'(a,i0)')'block_',2
         fname = merge_fname(version, dir_name, 'node.dat')
@@ -47,9 +49,12 @@ contains
 
     subroutine routine_main(mesh)
         type(meshdef), intent(inout) :: mesh(:)
+        type(meshdef) :: mesh_temp
         real(kdouble) :: coord(3)
         real(kdouble) :: theta, pi
         integer(kint) :: i, j
+        integer(kint) :: p_2, p_4, p_5, p_6, in
+        integer(kint) :: nnode_8, nnode_9, nelem_8, nelem_9
     
         pi = acos(-1.0)
 
@@ -76,6 +81,96 @@ contains
                 mesh(j)%node(3,i) = mesh(j)%node(3,i) + 1.0d0
             enddo
         enddo
+
+        p_2 = 0
+        p_4 = 0
+        p_5 = 0
+        p_6 = 0
+        do i=1, mesh(3)%nelem
+            if(mesh(3)%pid(i) == 2)p_2 = p_2 + 1
+            if(mesh(3)%pid(i) == 5)p_5 = p_5 + 1
+        enddo
+
+        do i=1, mesh(5)%nelem
+            if(mesh(5)%pid(i) == 4)p_4 = p_4 + 1
+            if(mesh(5)%pid(i) == 6)p_6 = p_6 + 1
+        enddo
+
+        nnode_8 = 396
+        nelem_8 = p_2 + p_5
+        ! mesh(8)%nelem = nelem_8
+        ! mesh(8)%nbase_func = 8
+        ! allocate(mesh(8)%elem(8,mesh(8)%nelem))
+        ! mesh(8)%nnode = nnode_8
+        ! allocate(mesh(8)%node(3,mesh(8)%nnode))
+
+        nnode_9 = mesh(5)%nnode - 243
+        nelem_9 = p_4 + p_6
+        ! mesh(9)%nelem = nelem_9
+        ! mesh(9)%nbase_func = 8
+        ! allocate(mesh(9)%elem(8,mesh(9)%nelem))
+        ! mesh(9)%nnode = nnode_9
+        ! allocate(mesh(9)%node(3,mesh(9)%nnode))
+
+        mesh(8)%nelem = nelem_8 + nelem_9
+        mesh(8)%nbase_func = 8
+        allocate(mesh(8)%elem(8,mesh(8)%nelem))
+        mesh(8)%nnode = nnode_8 + nnode_9
+        allocate(mesh(8)%node(3,mesh(8)%nnode))
+
+        mesh(9)%nelem = nelem_8 + nelem_9
+        mesh(9)%nbase_func = 8
+        allocate(mesh(9)%elem(8,mesh(9)%nelem))
+        mesh(9)%nnode = nnode_8 + nnode_9
+        allocate(mesh(9)%node(3,mesh(9)%nnode))
+
+
+        do i=1, mesh(3)%nelem
+            if(mesh(3)%pid(i) == 2 .or. mesh(3)%pid(i) == 5)then
+                mesh(8)%elem(:,i) = mesh(3)%elem(:,i)
+            endif
+        enddo
+
+        in = nelem_8
+        do i=1, mesh(5)%nelem
+            if(mesh(5)%pid(i) == 4 .or. mesh(5)%pid(i) == 6)then
+                in = in + 1
+                mesh(8)%elem(:,in) = mesh(5)%elem(:,i) - 243 + nnode_8
+            endif
+        enddo
+
+        do i=1, mesh(3)%nnode
+            if(i <= nnode_8)then
+                mesh(8)%node(:,i) = mesh(3)%node(:,i)
+            endif
+        enddo
+
+        in = nnode_8
+        do i=1, mesh(5)%nnode
+            if(i >= 244)then
+                in = in + 1
+                mesh(8)%node(:,in) = mesh(5)%node(:,i)
+            endif
+        enddo
+
+        mesh(9)%elem = mesh(8)%elem
+        mesh(9)%node = mesh(8)%node
+
+        ! in = 0
+        ! do i=1, mesh(5)%nelem
+        !     if(mesh(5)%pid(i) == 4 .or. mesh(5)%pid(i) == 6)then
+        !         in = in + 1
+        !         mesh(9)%elem(:,in) = mesh(5)%elem(:,i) - 243
+        !     endif
+        ! enddo
+
+        ! in = 0
+        ! do i=1, mesh(5)%nnode
+        !     if(i >= 244)then
+        !         in = in + 1
+        !         mesh(9)%node(:,in) = mesh(5)%node(:,i)
+        !     endif
+        ! enddo
 
     end subroutine routine_main
 end module mod_v3_init_placement

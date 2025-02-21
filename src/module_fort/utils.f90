@@ -128,8 +128,8 @@ subroutine arrange_nodecoord(mesh, angle, mesh_merged, imap, jmap)
         mesh_merged%node(:,i) = coord(:)
     enddo
 
-    mesh_merged%node(1,:) = mesh_merged%node(1,:) + dble(imap-1)
-    mesh_merged%node(3,:) = mesh_merged%node(3,:) + dble(jmap-1)
+    mesh_merged%node(1,:) = mesh_merged%node(1,:) + dble(jmap-1)
+    mesh_merged%node(3,:) = mesh_merged%node(3,:) + dble(imap-1)
 end subroutine arrange_nodecoord
 
 subroutine get_shear_defo(coord, theta, plate, direction)
@@ -181,4 +181,126 @@ subroutine get_shear_defo(coord, theta, plate, direction)
         stop
     endif
 end subroutine get_shear_defo
+
+subroutine remap_consecutive(mapping, mapping_new)
+    implicit none
+    integer(kint), intent(in) :: mapping(:)
+    integer(kint), intent(inout) :: mapping_new(:)
+    integer(kint), allocatable :: sorted(:)
+    integer :: n, i, j, num_unique
+    integer, allocatable :: unique_vals(:)
+
+    n = size(mapping)
+    allocate(sorted(n))
+    sorted = mapping
+    call sort_array(sorted, n)
+
+    num_unique = 0
+    do i=1,n
+        if(i == 1)then
+            num_unique = num_unique + 1
+        elseif(sorted(i) /= sorted(i-1))then
+            num_unique = num_unique + 1
+        endif
+    end do
+
+    write(*,*)num_unique
+
+    allocate(unique_vals(num_unique))
+
+    num_unique = 0
+    do i=1,n
+        if(i == 1)then
+            num_unique = num_unique + 1
+            unique_vals(num_unique) = sorted(i)
+        elseif(sorted(i) /= sorted(i-1))then
+            num_unique = num_unique + 1
+            unique_vals(num_unique) = sorted(i)
+        endif
+    end do
+
+    do i=1,n
+        do j=1, num_unique
+            if(mapping(i) == unique_vals(j))then
+                mapping_new(i) = j
+            endif
+        end do
+    end do
+end subroutine remap_consecutive
+
+subroutine sort_array(arr, n)
+    implicit none
+    integer(kint), intent(inout) :: arr(:)
+    integer(kint), intent(in) :: n
+    integer :: i, j, temp
+
+    do i = 1, n-1
+        do j = i+1, n
+            if (arr(i) > arr(j)) then
+                temp = arr(i)
+                arr(i) = arr(j)
+                arr(j) = temp
+            end if
+        end do
+    end do
+end subroutine sort_array
+
+subroutine check_consecutive_mapping(mapping_new)
+    ! use mod_monolis_utils_define_prm
+    implicit none
+    ! 入力： mapping_new (各節点に対する再マッピング値)
+    integer(kint), intent(in) :: mapping_new(:)
+    
+    integer(kint), allocatable :: temp(:)
+    integer(kint), allocatable :: unique_arr(:)
+    integer(kint) :: i, n, num_unique
+    logical :: is_consecutive
+
+    ! mapping_new のサイズを取得し、ソート用のコピーを作成
+    n = size(mapping_new)
+    allocate(temp(n))
+    temp = mapping_new
+
+    ! 既存のソートサブルーチンを利用して temp を昇順に並べ替える
+    call sort_array(temp, n)
+
+    ! ソート済み配列 temp からユニークな値（重複を除去）を抽出する
+    num_unique = 0
+    do i = 1, n
+        if (i == 1) then
+            num_unique = num_unique + 1
+        else if (temp(i) /= temp(i-1)) then
+            num_unique = num_unique + 1
+        end if
+    end do
+    allocate(unique_arr(num_unique))
+    num_unique = 0
+    do i = 1, n
+        if (i == 1) then
+            num_unique = num_unique + 1
+            unique_arr(num_unique) = temp(i)
+        else if (temp(i) /= temp(i-1)) then
+            num_unique = num_unique + 1
+            unique_arr(num_unique) = temp(i)
+        end if
+    end do
+
+    ! ユニークな値が1, 2, 3, ... と連続しているかチェックする
+    is_consecutive = .true.
+    do i = 1, num_unique
+        if (unique_arr(i) /= i) then
+            is_consecutive = .false.
+            exit
+        end if
+    end do
+
+    if (is_consecutive) then
+        write(*,*)"DEBUG: mapping_new is consecutive. Unique sorted mapping: "
+    else
+        write(*,*)"DEBUG: mapping_new is NOT consecutive. Unique sorted mapping: "
+    end if
+
+    deallocate(temp)
+    deallocate(unique_arr)
+end subroutine check_consecutive_mapping
 end module mod_utils

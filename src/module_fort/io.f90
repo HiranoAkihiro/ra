@@ -78,4 +78,18 @@ subroutine output_elem(mesh, fname)
         enddo
     close(20)
 end subroutine output_elem
+
+subroutine output_orientation(mesh, fname)
+    implicit none
+    type(meshdef) :: mesh
+    character(len=*), intent(in) :: fname
+    integer(kint) :: i, j
+
+    open(20, file=fname, status='replace')
+        write(20, '(i0,a,i0)')mesh%nelem, ' ', 1
+        do i=1,mesh%nelem
+            write(20, '(I0)')mesh%pid(i)
+        enddo
+    close(20)
+end subroutine output_orientation
 end module mod_io

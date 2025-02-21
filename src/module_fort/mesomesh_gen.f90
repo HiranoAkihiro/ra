@@ -190,7 +190,7 @@ subroutine mesh_pattern_map(map, p)
     endif
 end subroutine mesh_pattern_map
 
-subroutine arrange_blocks(map, p, mesh_merged)
+subroutine arrange_blocks(map, p, mesh_merged, is_v3)
     implicit none
     type(mapdef), intent(in) :: map(:,:)
     type(meshdef), allocatable :: mesh(:)
@@ -202,12 +202,10 @@ subroutine arrange_blocks(map, p, mesh_merged)
     integer(kint) :: sum1, sum2, in_nelem
     integer(kint), allocatable :: nb(:)
     integer(kint) :: block_id, angle
-    logical :: is_v3
-
-    is_v3 = .true.
-    version = 'v3'
+    logical, intent(in) :: is_v3
 
     if(is_v3)then
+        version = 'v3'
         allocate(mesh(9))
         do i=1, 9
             write(dir_name,'(a,i0)')'block_',i
@@ -218,29 +216,8 @@ subroutine arrange_blocks(map, p, mesh_merged)
             fname = merge_fname(version, dir_name,'mat.dat')
             call input_orientation(fname, mesh(i))
         enddo
-
-        allocate(nb(9))
-
-        nb(1) = 8*(p-1)
-        nb(2) = p
-        nb(3) = p*(p-1) + (p**2) - 3*p + 4
-        nb(4) = 2*(p-2)
-        nb(5) = p*(p-1) + (p**2) - 3*p + 4
-        nb(6) = 4*(p**2)
-        nb(7) = p
-        if(p==2)then
-            nb(9) = 0
-            nb(8) = 0
-        elseif(p==3)then
-            nb(9) = 0
-            nb(8) = 1
-        else
-            a = p - 3
-            b = p - 2
-            nb(9) = a*(a+1)/2
-            nb(8) = b*(b+1)/2
-        endif
     else
+        version = 'v2'
         allocate(mesh(4))
         do i=1,4
             write(dir_name,'(a,i0)')'block_',i
@@ -251,39 +228,9 @@ subroutine arrange_blocks(map, p, mesh_merged)
             fname = merge_fname(version, dir_name,'orientation.dat')
             call input_orientation(fname, mesh(i))
         enddo
-
-        allocate(nb(4))
-
-        nb(2) = 2*(5*p-6)
-        nb(3) = p
-        nb(4) = p
-        nb(1) = 9*(p**2)-nb(2)-nb(3)-nb(4)
     endif
-
-    ! sum1 = 0.0d0
-    ! sum2 = 0.0d0
-    ! do i=1,4
-    !     sum1 = sum1 + mesh(i)%nelem
-    !     sum2 = sum2 + mesh(i)%nnode
-    ! enddo
 
     allocate(mesh_merged(3*p,3*p))
-
-    mesh_merged%nbase_func = mesh(1)%nbase_func
-    mesh_merged%nelem = 0
-    mesh_merged%nnode = 0
-
-    if(is_v3)then
-        do i=1,9
-            mesh_merged%nelem = mesh_merged%nelem + nb(i)*mesh(i)%nelem
-            mesh_merged%nnode = mesh_merged%nnode + nb(i)*mesh(i)%nnode
-        enddo
-    else
-        do i=1,4
-            mesh_merged%nelem = mesh_merged%nelem + nb(i)*mesh(i)%nelem
-            mesh_merged%nnode = mesh_merged%nnode + nb(i)*mesh(i)%nnode
-        enddo
-    endif
 
     in_nelem = 0
     do i=1, 3*p
@@ -292,6 +239,10 @@ subroutine arrange_blocks(map, p, mesh_merged)
             angle = map(j,i)%angle
             call arrange_nodecoord(mesh(block_id), angle, mesh_merged(j,i), i, j)
             call arrange_connectivity(mesh(block_id), in_nelem, mesh_merged(j,i))
+            mesh_merged(j,i)%nelem = mesh(block_id)%nelem
+            mesh_merged(j,i)%nnode = mesh(block_id)%nnode
+            mesh_merged(j,i)%pid = mesh(block_id)%pid
+            mesh_merged(j,i)%nbase_func = mesh(block_id)%nbase_func
         enddo
     enddo
 end subroutine arrange_blocks
@@ -318,4 +269,246 @@ subroutine shear_blocks(mesh_merged)
         enddo
     enddo
 end subroutine shear_blocks
+
+subroutine get_meso_mesh(mesh_merged, meso_mesh, is_v3, p)
+    implicit none
+    type(meshdef), intent(in) :: mesh_merged(:,:)
+    type(meshdef), intent(inout) :: meso_mesh
+    type(meshdef) :: meso_mesh_temp
+    type(monolis_kdtree_structure) :: kd_tree
+    integer(kint), intent(in) :: p
+    integer(kint) :: n_found
+    integer(kint) :: unique_id, n_unique, n_unique2
+    integer(kint), allocatable :: found_ids(:)
+    integer(kint), allocatable :: BB_id(:)
+    real(kdouble), allocatable :: BB(:,:)
+    integer(kint), allocatable :: mapping(:), mapping_new(:)
+    real(kdouble) :: pos(3)
+    real(kdouble) :: inf
+    integer(kint) :: i, j, k, l, in_elem, in_node
+    character(len=:), allocatable :: fname, version
+    logical, intent(in) :: is_v3
+
+    ! call get_meso_mesh_size(is_v3, nb, nnode_meso, nelem_meso, p)
+
+    meso_mesh_temp%nbase_func = 8
+
+    meso_mesh_temp%nelem = 0
+    meso_mesh_temp%nnode = 0
+    do i=1, 3*p
+        do j=1, 3*p
+            meso_mesh_temp%nelem = meso_mesh_temp%nelem + mesh_merged(j,i)%nelem
+            meso_mesh_temp%nnode = meso_mesh_temp%nnode + mesh_merged(j,i)%nnode
+        enddo
+    enddo
+
+    allocate(meso_mesh_temp%elem(meso_mesh_temp%nbase_func, meso_mesh_temp%nelem))
+    allocate(meso_mesh_temp%node(3, meso_mesh_temp%nnode))
+    allocate(meso_mesh_temp%pid(meso_mesh_temp%nelem))
+
+    in_elem = 0
+    in_node = 0
+    do i=1, 3*p
+        do j=1, 3*p
+            do k=1, mesh_merged(j,i)%nelem
+                meso_mesh_temp%elem(:,k+in_elem) = mesh_merged(j,i)%elem(:,k)
+                meso_mesh_temp%pid(k+in_elem) = mesh_merged(j,i)%pid(k)
+            enddo
+            in_elem = in_elem + mesh_merged(j,i)%nelem
+
+            do k=1, mesh_merged(j,i)%nnode
+                meso_mesh_temp%node(:,k+in_node) = mesh_merged(j,i)%node(:,k)
+            enddo
+            in_node = in_node + mesh_merged(j,i)%nnode
+        enddo
+    enddo
+
+    inf = 1.0d-10
+    call eliminate_duplicates(meso_mesh_temp, inf, mapping, mapping_new)
+
+    call check_consecutive_mapping(mapping_new)
+
+    n_unique = count_unique_elements(mapping)
+    n_unique2 = count_unique_elements(mapping_new)
+    n_unique = 0
+    do i=1, meso_mesh_temp%nnode
+        if (mapping(i) == i) then
+            n_unique = n_unique + 1
+        end if
+    end do
+
+    i = maxval(mapping_new)
+    j = maxval(mapping)
+    write(*,*)n_unique, i, n_unique2
+    write(*,*)meso_mesh_temp%nnode, j
+
+    ! do i=1, 1000
+    !     write(*,*)mapping(i)
+    ! enddo
+
+    meso_mesh%nelem = meso_mesh_temp%nelem
+    meso_mesh%nnode = i
+    meso_mesh%nbase_func = 8
+    allocate(meso_mesh%elem(meso_mesh%nbase_func, meso_mesh%nelem))
+    allocate(meso_mesh%node(3, meso_mesh%nnode))
+
+    call create_meso_mesh(meso_mesh_temp, meso_mesh, mapping, mapping_new)
+    
+end subroutine get_meso_mesh
+
+subroutine eliminate_duplicates(mesh, inf, mapping, mapping_new)
+    implicit none
+    type(meshdef) :: mesh
+    real(kdouble), intent(in) :: inf
+    integer(kint), intent(inout), allocatable :: mapping(:), mapping_new(:)
+    type(monolis_kdtree_structure) :: kd_tree
+    integer(kint) :: n_found
+    integer(kint) :: unique_id, n_unique
+    integer(kint) :: i, j, k
+    integer(kint), allocatable :: found_ids(:)
+    integer(kint), allocatable :: BB_id(:)
+    real(kdouble), allocatable :: BB(:,:)
+    real(kdouble) :: pos(3)
+
+    allocate(BB(6,mesh%nnode))
+    allocate(BB_id(mesh%nnode))
+
+    do i=1, mesh%nnode
+        BB(1,i) = mesh%node(1,i) - inf
+        BB(2,i) = mesh%node(1,i) + inf
+        BB(3,i) = mesh%node(2,i) - inf
+        BB(4,i) = mesh%node(2,i) + inf
+        BB(5,i) = mesh%node(3,i) - inf
+        BB(6,i) = mesh%node(3,i) + inf
+        BB_id(i) = i
+    enddo
+
+    call monolis_kdtree_init_by_BB(kd_tree, mesh%nnode, BB_id, BB)
+
+    allocate(mapping(mesh%nnode), source=0)
+    allocate(mapping_new(mesh%nnode), source=0)
+
+    do i=1, mesh%nnode
+        pos = mesh%node(:,i)
+        n_found = 0
+        call monolis_kdtree_get_BB_including_coordinates(kd_tree, pos, n_found, found_ids)
+        ! 複数の節点が内包される場合、最初に登録された（インデックスが小さい）節点を唯一の代表とする
+        unique_id = i
+        do j=1, n_found
+            if (found_ids(j) < unique_id) then
+                unique_id = found_ids(j)
+            end if
+        end do
+        mapping(i) = unique_id
+        if (allocated(found_ids)) then
+            deallocate(found_ids)
+        end if
+    end do
+
+    call remap_consecutive(mapping, mapping_new)
+    
+end subroutine eliminate_duplicates
+
+    function count_unique_elements(mapping) result(unique_count)
+        implicit none
+        integer(kint), intent(in) :: mapping(:)
+        integer(kint) :: unique_count
+        integer(kint) :: i, j
+        logical :: is_new
+        integer(kint), allocatable :: unique_arr(:)
+
+        allocate(unique_arr(size(mapping)))
+        unique_count = 0
+
+        do i = 1, size(mapping)
+            is_new = .true.
+            do j = 1, unique_count
+                if (mapping(i) == unique_arr(j)) then
+                    is_new = .false.
+                    exit
+                end if
+            end do
+            if (is_new) then
+                unique_count = unique_count + 1
+                unique_arr(unique_count) = mapping(i)
+            end if
+        end do
+
+        deallocate(unique_arr)
+    end function count_unique_elements
+
+    subroutine create_meso_mesh(meso_mesh_temp, meso_mesh, mapping, mapping_new)
+        implicit none
+        type(meshdef), intent(inout) :: meso_mesh
+        type(meshdef), intent(in) :: meso_mesh_temp
+        integer(kint), intent(in) :: mapping(:), mapping_new(:)
+        integer(kint) :: i, j, k, l, nid, in
+        logical, allocatable :: is_duplicate(:)
+
+        allocate(is_duplicate(meso_mesh_temp%nnode), source = .false.)
+
+        do i=1, meso_mesh_temp%nnode
+            nid = mapping_new(i)
+            meso_mesh%node(:,nid) = meso_mesh_temp%node(:,i)
+        enddo
+
+        do k=1, meso_mesh_temp%nnode
+            do i=1, meso_mesh_temp%nelem
+                do j=1, meso_mesh_temp%nbase_func
+                    if(meso_mesh_temp%elem(j,i)==k)then
+                        meso_mesh%elem(j,i) = mapping_new(k)
+                    endif
+                enddo
+            enddo
+        enddo
+    
+        allocate(meso_mesh%pid(meso_mesh%nelem))
+
+        meso_mesh%pid = meso_mesh_temp%pid
+    end subroutine create_meso_mesh
+
+    subroutine get_meso_mesh_dupl(mesh_merged, meso_mesh, is_v3, p)
+        implicit none
+        type(meshdef), intent(in) :: mesh_merged(:,:)
+    type(meshdef), intent(inout) :: meso_mesh
+    integer(kint), intent(in) :: p
+    real(kdouble) :: pos(3)
+    real(kdouble) :: inf
+    integer(kint) :: i, j, k, l, in_elem, in_node
+    character(len=:), allocatable :: fname, version
+    logical, intent(in) :: is_v3
+    
+    meso_mesh%nbase_func = 8
+
+    meso_mesh%nelem = 0
+    meso_mesh%nnode = 0
+    do i=1, 3*p
+        do j=1, 3*p
+            meso_mesh%nelem = meso_mesh%nelem + mesh_merged(j,i)%nelem
+            meso_mesh%nnode = meso_mesh%nnode + mesh_merged(j,i)%nnode
+        enddo
+    enddo
+
+    allocate(meso_mesh%elem(meso_mesh%nbase_func, meso_mesh%nelem))
+    allocate(meso_mesh%node(3, meso_mesh%nnode))
+    allocate(meso_mesh%pid(meso_mesh%nelem))
+
+    in_elem = 0
+    in_node = 0
+    do i=1, 3*p
+        do j=1, 3*p
+            do k=1, mesh_merged(j,i)%nelem
+                meso_mesh%elem(:,k+in_elem) = mesh_merged(j,i)%elem(:,k)
+                meso_mesh%pid(k+in_elem) = mesh_merged(j,i)%pid(k)
+            enddo
+            in_elem = in_elem + mesh_merged(j,i)%nelem
+
+            do k=1, mesh_merged(j,i)%nnode
+                meso_mesh%node(:,k+in_node) = mesh_merged(j,i)%node(:,k)
+            enddo
+            in_node = in_node + mesh_merged(j,i)%nnode
+        enddo
+    enddo
+        
+    end subroutine get_meso_mesh_dupl
 end module mod_mesomesh_gen

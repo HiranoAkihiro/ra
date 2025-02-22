@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import ctypes
 import numpy as np
+import sys
 
 def call_fortran(p, block_id, angle):
     f = np.ctypeslib.load_library("libfort.so", "./sobj/")
@@ -17,13 +18,12 @@ def call_fortran(p, block_id, angle):
     f.mesh_pattern_map_wrapper_(ctypes.c_int32(p), ctypes.c_int32(n), block_id, angle)
     return n
 
-p = 4
+p = int(sys.argv[1])
 block_id = np.zeros([p*3,p*3], dtype=np.int32)
 angle = np.zeros([p*3,p*3], dtype=np.int32)
 
 n = call_fortran(p, block_id, angle)
 print(block_id.shape)
-print(angle.shape)
 # print(block_id[8,8])
 # print(angle[8,8])
 
@@ -84,6 +84,8 @@ for i in range(0,n,1):
             colors[i,j] = '#FFFFFF'
         elif block_id[i,j] == 9:
             colors[i,j] = '#ADD8E6'
+        elif block_id[i,j] == 10:
+            colors[i,j] = '#00ffff'
 
 colors_rgb = np.array([[mcolors.to_rgb(color) for color in row] for row in colors])
 

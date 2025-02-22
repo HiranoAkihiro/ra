@@ -28,7 +28,7 @@ class Meshdef:
                 values = line.strip().split(',')
                 node[i] = np.array(values)
             
-        with open(dir+'/mat.dat', 'r') as f:
+        with open(dir+'/orientation.dat', 'r') as f:
             nmat, col = map(int, f.readline().split())
             mat = np.zeros((nmat), dtype=int)
             for i, line in enumerate(f):

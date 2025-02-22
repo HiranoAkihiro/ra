@@ -16,7 +16,7 @@ contains
             n_block = 4
         elseif(version == 'v3')then
             n_block = 6
-            n_mesh = 9
+            n_mesh = 10
         endif
         allocate(mesh(n_mesh))
 
@@ -26,7 +26,7 @@ contains
             call input_node(fname, mesh(i))
             fname = merge_fname(version, dir_name, 'elem.dat')
             call input_elem(fname, mesh(i))
-            fname = merge_fname(version, dir_name, 'mat.dat')
+            fname = merge_fname(version, dir_name, 'orientation.dat')
             call input_orientation(fname, mesh(i))
         enddo
         write(dir_name,'(a,i0)')'block_',2
@@ -34,6 +34,8 @@ contains
         call input_node(fname, mesh(7))
         fname = merge_fname(version, dir_name, 'elem.dat')
         call input_elem(fname, mesh(7))
+        fname = merge_fname(version, dir_name, 'orientation.dat')
+        call input_orientation(fname, mesh(i))
 
         call routine_main(mesh)
 
@@ -43,6 +45,8 @@ contains
             call output_node(mesh(i), fname)
             fname = merge_fname(version, dir_name, 'elem.dat')
             call output_elem(mesh(i), fname)
+            fname = merge_fname(version, dir_name, 'orientation.dat')
+            call output_orientation(mesh(i), fname)
         enddo
 
     end subroutine rotate
@@ -98,29 +102,21 @@ contains
 
         nnode_8 = 396
         nelem_8 = p_2 + p_5
-        ! mesh(8)%nelem = nelem_8
-        ! mesh(8)%nbase_func = 8
-        ! allocate(mesh(8)%elem(8,mesh(8)%nelem))
-        ! mesh(8)%nnode = nnode_8
-        ! allocate(mesh(8)%node(3,mesh(8)%nnode))
 
         nnode_9 = mesh(5)%nnode - 243
         nelem_9 = p_4 + p_6
-        ! mesh(9)%nelem = nelem_9
-        ! mesh(9)%nbase_func = 8
-        ! allocate(mesh(9)%elem(8,mesh(9)%nelem))
-        ! mesh(9)%nnode = nnode_9
-        ! allocate(mesh(9)%node(3,mesh(9)%nnode))
 
         mesh(8)%nelem = nelem_8 + nelem_9
         mesh(8)%nbase_func = 8
         allocate(mesh(8)%elem(8,mesh(8)%nelem))
+        allocate(mesh(8)%pid(mesh(8)%nelem))
         mesh(8)%nnode = nnode_8 + nnode_9
         allocate(mesh(8)%node(3,mesh(8)%nnode))
 
         mesh(9)%nelem = nelem_8 + nelem_9
         mesh(9)%nbase_func = 8
         allocate(mesh(9)%elem(8,mesh(9)%nelem))
+        allocate(mesh(9)%pid(mesh(9)%nelem))
         mesh(9)%nnode = nnode_8 + nnode_9
         allocate(mesh(9)%node(3,mesh(9)%nnode))
 
@@ -128,6 +124,7 @@ contains
         do i=1, mesh(3)%nelem
             if(mesh(3)%pid(i) == 2 .or. mesh(3)%pid(i) == 5)then
                 mesh(8)%elem(:,i) = mesh(3)%elem(:,i)
+                mesh(8)%pid(i) = mesh(3)%pid(i)
             endif
         enddo
 
@@ -136,12 +133,17 @@ contains
             if(mesh(5)%pid(i) == 4 .or. mesh(5)%pid(i) == 6)then
                 in = in + 1
                 mesh(8)%elem(:,in) = mesh(5)%elem(:,i) - 243 + nnode_8
+                mesh(8)%pid(in) = mesh(5)%pid(i)
             endif
         enddo
 
+        theta = -pi/2.0d0
         do i=1, mesh(3)%nnode
             if(i <= nnode_8)then
-                mesh(8)%node(:,i) = mesh(3)%node(:,i)
+                coord(:) = mesh(3)%node(:,i)
+                call reflect_y(coord, theta)
+                mesh(8)%node(:,i) = coord(:)
+                mesh(8)%node(1,i) = mesh(8)%node(1,i) + 1.0d0
             endif
         enddo
 
@@ -155,6 +157,7 @@ contains
 
         mesh(9)%elem = mesh(8)%elem
         mesh(9)%node = mesh(8)%node
+        mesh(9)%pid = mesh(8)%pid
 
         theta = -pi/2.0d0
         do i=1, mesh(9)%nnode
@@ -162,6 +165,26 @@ contains
             call reflect_y(coord, theta)
             mesh(9)%node(:,i) = coord(:)
             mesh(9)%node(1,i) = mesh(9)%node(1,i) + 1.0d0
+        enddo
+
+        mesh(10)%nelem = mesh(4)%nelem
+        mesh(10)%nnode = mesh(4)%nnode
+        mesh(10)%nbase_func = 8
+
+        allocate(mesh(10)%elem(mesh(10)%nbase_func, mesh(10)%nelem))
+        allocate(mesh(10)%node(3, mesh(10)%nnode))
+        allocate(mesh(10)%pid(mesh(10)%nelem))
+
+        mesh(10)%node = mesh(4)%node
+        mesh(10)%elem = mesh(4)%elem
+        mesh(10)%pid = mesh(4)%pid
+
+        theta = -pi/2.0d0
+        do i=1, mesh(10)%nnode
+            coord(:) = mesh(10)%node(:,i)
+            call reflect_y(coord, theta)
+            mesh(10)%node(:,i) = coord(:)
+            mesh(10)%node(1,i) = mesh(10)%node(1,i) + 1.0d0
         enddo
 
         ! in = 0

@@ -12,8 +12,6 @@ subroutine mesh_pattern_map_wrapper(p, n, block_id, angle)
         if(p==1)then
             block_id(1,1) = map(1,1)%block_id
             angle(1,1) = map(1,1)%angle
-            write(*,*)map%block_id
-            write(*,*)map%angle
         else
             block_id = map%block_id
             angle = map%angle
@@ -22,40 +20,54 @@ subroutine mesh_pattern_map_wrapper(p, n, block_id, angle)
         deallocate(map)
 end subroutine mesh_pattern_map_wrapper
 
-subroutine test()
+subroutine test(p, inf)
     use mod_mesomesh_gen
+    use mod_debug
+    use iso_fortran_env, only: output_unit
     implicit none
     type(mapdef), allocatable :: map(:,:)
     type(meshdef), allocatable :: mesh_merged(:,:)
     type(meshdef) :: meso_mesh
-    integer(kint) :: p, i, j, k
-    real(kdouble) :: nnodes(4)
+    integer(kint) :: i, j, k
+    integer(kint), intent(in) :: p
+    real(kdouble), intent(in) :: inf
     logical :: is_v3
     character(len=:), allocatable :: fname
 
     is_v3 = .true.
 
-    nnodes = 0.0d0
-    p = 2
+    write(output_unit,'(A)',advance="no")'creating a map... '
+    call flush(output_unit)
     call mesh_pattern_map(map, p)
+    write(output_unit,'(A)') "done."
+    write(*,*)
+
+    write(output_unit,'(A)',advance="no")'arranging subcells... '
+    call flush(output_unit)
     call arrange_blocks(map, p, mesh_merged, is_v3)
-    ! call shear_blocks(mesh_merged)
-    ! call get_meso_mesh(mesh_merged, meso_mesh, is_v3, p)
-    call get_meso_mesh_dupl(mesh_merged, meso_mesh, is_v3, p)
+    write(output_unit,'(A)') "done."
+    write(*,*)
 
-    fname = 'subcell_merged_(meso_mesh)/elem.dat'
-    call output_elem(meso_mesh, fname)
-    fname = 'subcell_merged_(meso_mesh)/node.dat'
-    call output_node(meso_mesh, fname)
-    fname = 'subcell_merged_(meso_mesh)/mat.dat'
-    call output_orientation(meso_mesh, fname)
+    write(output_unit, '(A)', advance="no")'creating meso mesh... '
+    call flush(output_unit)
+    call get_meso_mesh(mesh_merged, meso_mesh, is_v3, p, inf)
+    ! call get_meso_mesh_dupl(mesh_merged, meso_mesh, is_v3, p)
+    write(output_unit,'(A)')"done."
+    write(*,*)
 
-    ! j = 4
-    ! k = 4
-    ! write(*,*)mesh_merged(j,k)%nnode
-    ! do i=1, size(mesh_merged(j,k)%node, 2)
-    !     write(*,*)mesh_merged(j,k)%node(:,i)
-    ! enddo
+    write(output_unit, '(A)', advance="no")'shearing the meso mesh... '
+    call flush(output_unit)
+    call shear_blocks(meso_mesh)
+    write(output_unit,'(A)')"done."
+    write(*,*)
+
+    ! call output_mesh_merged(mesh_merged, 3*p)
+
+    write(output_unit, '(A)', advance="no")'writing out the meso mesh... '
+    call flush(output_unit)
+    call output_mesomesh(meso_mesh)
+    write(output_unit,'(A)')"done."
+    write(*,*)
 end subroutine test
 
 subroutine rotate_wrapper()

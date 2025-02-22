@@ -88,8 +88,22 @@ subroutine output_orientation(mesh, fname)
     open(20, file=fname, status='replace')
         write(20, '(i0,a,i0)')mesh%nelem, ' ', 1
         do i=1,mesh%nelem
-            write(20, '(I0)')mesh%pid(i)
+            write(20,*)mesh%pid(i)
         enddo
     close(20)
 end subroutine output_orientation
+
+subroutine output_mesomesh(meso_mesh)
+    implicit none
+    type(meshdef), intent(in) :: meso_mesh
+    character(len=:), allocatable :: fname
+
+    fname = 'subcell_merged_(meso_mesh)/elem.dat'
+    call output_elem(meso_mesh, fname)
+    fname = 'subcell_merged_(meso_mesh)/node.dat'
+    call output_node(meso_mesh, fname)
+    fname = 'subcell_merged_(meso_mesh)/orientation.dat'
+    call output_orientation(meso_mesh, fname)
+    
+end subroutine output_mesomesh
 end module mod_io

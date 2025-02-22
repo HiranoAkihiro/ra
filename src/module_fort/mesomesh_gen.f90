@@ -22,7 +22,7 @@ subroutine mesh_pattern_map(map, p)
     integer(kint), intent(in) :: p
     integer(kint) :: n, m
     integer(kint) :: i, j, k, in
-    integer(kint) :: ppp, qqq, rrr, sss, ttt, uuu, vvv, yyy, zzz
+    integer(kint) :: ppp, qqq, rrr, sss, ttt, uuu, vvv, yyy, zzz, ooo
     logical :: a, b, is_v3
 
     ppp = 1
@@ -34,6 +34,7 @@ subroutine mesh_pattern_map(map, p)
     vvv = 7
     yyy = 8
     zzz = 9
+    ooo = 10
 
     is_v3 = .true.
 
@@ -151,7 +152,8 @@ subroutine mesh_pattern_map(map, p)
                         map(j,i+2)%angle = 0
                     else
                         map(1,i)%block_id = sss
-                        map(j,1)%block_id = sss
+                        map(j,1)%block_id = ooo
+                        map(j,1)%angle = 3
                         do k=2, j-1
                             map(k,i)%block_id = rrr
                             map(k,i)%angle = 3
@@ -206,14 +208,14 @@ subroutine arrange_blocks(map, p, mesh_merged, is_v3)
 
     if(is_v3)then
         version = 'v3'
-        allocate(mesh(9))
-        do i=1, 9
+        allocate(mesh(10))
+        do i=1, 10
             write(dir_name,'(a,i0)')'block_',i
             fname = merge_fname(version, dir_name,'node.dat')
             call input_node(fname, mesh(i))
             fname = merge_fname(version, dir_name,'elem.dat')
             call input_elem(fname, mesh(i))
-            fname = merge_fname(version, dir_name,'mat.dat')
+            fname = merge_fname(version, dir_name,'orientation.dat')
             call input_orientation(fname, mesh(i))
         enddo
     else
@@ -247,30 +249,25 @@ subroutine arrange_blocks(map, p, mesh_merged, is_v3)
     enddo
 end subroutine arrange_blocks
 
-subroutine shear_blocks(mesh_merged)
+subroutine shear_blocks(meso_mesh)
     implicit none
-    type(meshdef), intent(inout) :: mesh_merged(:,:)
+    type(meshdef), intent(inout) :: meso_mesh
     real(kdouble) :: coord(3)
     real(kdouble) :: theta, pi
-    integer(kint) :: i, j, k, n
+    integer(kint) :: i
 
     pi = acos(-1.0)
     theta = pi/6.0d0
-    n=size(mesh_merged, 1)
 
-    do i=1,n
-        do j=1,n
-            do k=1, size(mesh_merged(j,i)%node, 2)
-                coord(:) = mesh_merged(j,i)%node(:,k)
-                call get_shear_defo(coord, theta, 'zx', 'x')
-                call rotate_y(coord, theta/2.0d0)
-                mesh_merged(j,i)%node(:,k) = coord(:)
-            enddo
-        enddo
+    do i=1, meso_mesh%nnode
+        coord(:) = meso_mesh%node(:,i)
+        call get_shear_defo(coord, theta, 'zx', 'x')
+        call rotate_y(coord, theta/2.0d0)
+        meso_mesh%node(:,i) = coord(:)
     enddo
 end subroutine shear_blocks
 
-subroutine get_meso_mesh(mesh_merged, meso_mesh, is_v3, p)
+subroutine get_meso_mesh(mesh_merged, meso_mesh, is_v3, p, inf)
     implicit none
     type(meshdef), intent(in) :: mesh_merged(:,:)
     type(meshdef), intent(inout) :: meso_mesh
@@ -284,15 +281,12 @@ subroutine get_meso_mesh(mesh_merged, meso_mesh, is_v3, p)
     real(kdouble), allocatable :: BB(:,:)
     integer(kint), allocatable :: mapping(:), mapping_new(:)
     real(kdouble) :: pos(3)
-    real(kdouble) :: inf
     integer(kint) :: i, j, k, l, in_elem, in_node
     character(len=:), allocatable :: fname, version
     logical, intent(in) :: is_v3
-
-    ! call get_meso_mesh_size(is_v3, nb, nnode_meso, nelem_meso, p)
+    real(kdouble), intent(in) :: inf
 
     meso_mesh_temp%nbase_func = 8
-
     meso_mesh_temp%nelem = 0
     meso_mesh_temp%nnode = 0
     do i=1, 3*p
@@ -323,31 +317,17 @@ subroutine get_meso_mesh(mesh_merged, meso_mesh, is_v3, p)
         enddo
     enddo
 
-    inf = 1.0d-10
     call eliminate_duplicates(meso_mesh_temp, inf, mapping, mapping_new)
 
-    call check_consecutive_mapping(mapping_new)
+    ! call check_consecutive_mapping(mapping_new)
 
     n_unique = count_unique_elements(mapping)
     n_unique2 = count_unique_elements(mapping_new)
-    n_unique = 0
-    do i=1, meso_mesh_temp%nnode
-        if (mapping(i) == i) then
-            n_unique = n_unique + 1
-        end if
-    end do
 
-    i = maxval(mapping_new)
-    j = maxval(mapping)
-    write(*,*)n_unique, i, n_unique2
-    write(*,*)meso_mesh_temp%nnode, j
-
-    ! do i=1, 1000
-    !     write(*,*)mapping(i)
-    ! enddo
+    ! write(*,*)n_unique, n_unique2, meso_mesh_temp%nnode
 
     meso_mesh%nelem = meso_mesh_temp%nelem
-    meso_mesh%nnode = i
+    meso_mesh%nnode = n_unique
     meso_mesh%nbase_func = 8
     allocate(meso_mesh%elem(meso_mesh%nbase_func, meso_mesh%nelem))
     allocate(meso_mesh%node(3, meso_mesh%nnode))

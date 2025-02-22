@@ -57,19 +57,19 @@ subroutine rotate_y_regular(coord, angle)
     coord_temp = coord
     if(angle == 0)then
 
-    elseif(angle == 3)then
+    elseif(angle == 1)then
         coord(1) = coord_temp(3)
         coord(3) = -coord_temp(1)
-        coord(1) = coord(1) + 1.0d0
+        coord(3) = coord(3) + 1.0d0
     elseif(angle == 2)then
         coord(1) = -coord_temp(1)
         coord(3) = -coord_temp(3)
         coord(1) = coord(1) + 1.0d0
         coord(3) = coord(3) + 1.0d0
-    elseif(angle == 1)then
+    elseif(angle == 3)then
         coord(1) = -coord_temp(3)
         coord(3) = coord_temp(1)
-        coord(3) = coord(3) + 1.0d0
+        coord(1) = coord(1) + 1.0d0
     endif
 end subroutine rotate_y_regular
 
@@ -203,8 +203,6 @@ subroutine remap_consecutive(mapping, mapping_new)
             num_unique = num_unique + 1
         endif
     end do
-
-    write(*,*)num_unique
 
     allocate(unique_vals(num_unique))
 

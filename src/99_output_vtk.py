@@ -30,5 +30,11 @@ mesh8.output_vtk('block_8.vtk')
 mesh9 = io.Meshdef.input_mesh('subcell_all_monolis_v3/block_9')
 mesh9.output_vtk('block_9.vtk')
 
+mesh10 = io.Meshdef.input_mesh('subcell_all_monolis_v3/block_10')
+mesh10.output_vtk('block_10.vtk')
+
 meso_mesh = io.Meshdef.input_mesh('subcell_merged_(meso_mesh)')
 meso_mesh.output_vtk('meso_mesh.vtk')
+
+# mesh_d = io.Meshdef.input_mesh('subcell_debug/4,4')
+# mesh_d.output_vtk('mesh_d.vtk')

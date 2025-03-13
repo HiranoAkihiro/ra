@@ -14,12 +14,10 @@ read -p "プログラムの選択（対応する整数値を入力） : " case
 echo ""
 
 if [ $case -eq 1 ]; then
-    read -p "kファイルのバージョンを選択 : " case2
-    echo ""
     echo "**************** RUN PROGRAMS ****************"
     echo "python3 ./ssrc/01_make_blocks_main.py"
     echo ""
-    python3 ./src/01_make_blocks_main.py $case2
+    python3 ./src/01_make_blocks_main.py v3
 elif [ $case -eq 2 ];then
     read -p "meso mesh におけるテープ数 p の入力 (2以上) : p = " case2
     echo ""

@@ -36,5 +36,5 @@ mesh10.output_vtk('block_10.vtk')
 meso_mesh = io.Meshdef.input_mesh('subcell_merged_(meso_mesh)')
 meso_mesh.output_vtk('meso_mesh.vtk')
 
-mesh_d = io.Meshdef.input_mesh('subcell_debug/3,2')
-mesh_d.output_vtk('mesh_d.vtk')
+# mesh_d = io.Meshdef.input_mesh('subcell_debug/3,2')
+# mesh_d.output_vtk('mesh_d.vtk')

@@ -1,8 +1,20 @@
 # インストール手順
+
+実行環境は以下で構築（Ubuntu）
+```bash
+sudo apt update
+sudo apt upgrade
+sudo apt install -y build-essential
+sudo apt install -y cmake
+sudo apt install -y gfortran
+sudo apt install -y git
+sudo apt install -y wget
+sudo apt install -y openmpi-doc openmpi-bin libopenmpi-dev
+```
 1. cloneする
 2. keyword/ ディレクトリに "subcell_all_v3.k" ファイルを置く
 3. 以下のコマンドを実行し、submoduleのインストール＆Fortranモジュールのコンパイル
-```#bash
+```bash
 ./setup.sh
 ```
 なお、Pythonライブラリは以下を使用。

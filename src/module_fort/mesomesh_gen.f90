@@ -198,7 +198,7 @@ subroutine arrange_blocks(map, p, mesh_merged, is_v3)
     type(meshdef), allocatable :: mesh(:)
     type(meshdef), intent(inout), allocatable :: mesh_merged(:,:)
     integer(kint), intent(in) :: p
-    integer(kint) :: i, j, a, b
+    integer(kint) :: i, j, k, a, b
     character(len=100) :: dir_name 
     character(len=:), allocatable :: fname, version
     integer(kint) :: sum1, sum2, in_nelem
@@ -217,6 +217,17 @@ subroutine arrange_blocks(map, p, mesh_merged, is_v3)
             call input_elem(fname, mesh(i))
             fname = merge_fname(version, dir_name,'orientation.dat')
             call input_orientation(fname, mesh(i))
+            do j=1, mesh(i)%nelem
+                if(mesh(i)%pid(j)==2)then
+                    mesh(i)%pid(j) = 2
+                elseif(mesh(i)%pid(j)==4)then
+                    mesh(i)%pid(j) = 1
+                elseif(mesh(i)%pid(j)==5)then
+                    mesh(i)%pid(j) = 2
+                elseif(mesh(i)%pid(j)==6)then
+                    mesh(i)%pid(j) = 1
+                endif
+            enddo
         enddo
     else
         version = 'v2'
@@ -244,9 +255,36 @@ subroutine arrange_blocks(map, p, mesh_merged, is_v3)
             mesh_merged(j,i)%nelem = mesh(block_id)%nelem
             mesh_merged(j,i)%nnode = mesh(block_id)%nnode
             mesh_merged(j,i)%pid = mesh(block_id)%pid
+            do k=1, mesh(block_id)%nelem
+                if(angle==0 .or. angle==2)then
+                    mesh_merged(j,i)%pid(k) = mesh(block_id)%pid(k)
+                elseif(angle==1 .or. angle==3)then
+                    if(mesh(block_id)%pid(k)==1)then
+                        mesh_merged(j,i)%pid(k) = 2
+                    elseif(mesh(block_id)%pid(k)==2)then
+                        mesh_merged(j,i)%pid(k) = 1
+                    endif
+                endif
+            enddo
             mesh_merged(j,i)%nbase_func = mesh(block_id)%nbase_func
         enddo
     enddo
+
+    ! do i=1, 3*p
+    !     do j=1, 3*p
+    !         do k=1, mesh_merged(j,i)%nelem
+    !             if(mesh_merged(j,i)%pid(k) == 1)then
+    !                 ! if(mod(j+5,6)==0 .or. mod(j+4,6)==0 .or. mod(j+3,6)==0)then
+    !                 !     mesh_merged(j,i)%pid(k) = mesh_merged(j,i)%pid(k) + 10
+    !                 ! endif
+    !             elseif(mesh_merged(j,i)%pid(k) == 2)then
+    !                 if(mod(i+5,6)==0 .or. mod(i+4,6)==0 .or. mod(i+3,6)==0)then
+    !                     mesh_merged(j,i)%pid(k) = mesh_merged(j,i)%pid(k) + 10
+    !                 endif
+    !             endif
+    !         enddo
+    !     enddo
+    ! enddo
 end subroutine arrange_blocks
 
 subroutine shear_blocks(meso_mesh)

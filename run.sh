@@ -8,6 +8,8 @@ echo "2 → map情報作成のテスト実行 & 作成されたmap情報をグ�
 echo ""
 echo "3 → monolis形式のsubcell読み取り & map情報の作成 & meso meshの作成"
 echo ""
+echo "99 → 生成されたmeso meshのVTKファイル作成"
+echo ""
 read -p "プログラムの選択（対応する整数値を入力） : " case
 echo ""
 

@@ -57,7 +57,7 @@ subroutine test(p, inf)
 
     write(output_unit, '(A)', advance="no")'shearing the meso mesh... '
     call flush(output_unit)
-    call shear_blocks(meso_mesh)
+    ! call shear_blocks(meso_mesh)
     write(output_unit,'(A)')"done."
     write(*,*)
 

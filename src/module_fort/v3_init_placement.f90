@@ -187,6 +187,16 @@ contains
             mesh(10)%node(1,i) = mesh(10)%node(1,i) + 1.0d0
         enddo
 
+        do i=1, mesh(6)%nelem
+            if(mesh(6)%pid(i)==5)then
+                mesh(6)%pid(i)=6
+                cycle
+            elseif(mesh(6)%pid(i)==6)then
+                mesh(6)%pid(i)=5
+                cycle
+            endif
+        enddo
+
         ! in = 0
         ! do i=1, mesh(5)%nelem
         !     if(mesh(5)%pid(i) == 4 .or. mesh(5)%pid(i) == 6)then

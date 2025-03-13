@@ -58,6 +58,16 @@ keyword/ に置いたkファイル（"subcell_all_v3.k"）から、monolis形式
 meso mesh におけるテープ数 p の入力 (2以上) : p =
 ```
 テープ数５くらいだと5~6分かかる。
+
+＜メゾメッシュの繊維方向（orientation.dat）について＞
+
+orientation.datで、各要素に対応した繊維方向を識別する以下の整数値を定義。
+
+１：x軸方向\
+２：z軸方向
+
+
+
 ## 3 → 生成されたmeso meshのVTKファイル作成
 ２番のプログラムで生成されたmonolis形式のメゾメッシュからParaview可視化用のVTKファイルを出力する。（出力先： "visual/"）
 ## 99 → map情報作成のテスト実行 & 作成されたmap情報をグリッドへ可視化
